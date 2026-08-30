@@ -1,0 +1,97 @@
+name: iGaming Tools
+description: >-
+  Data provider offering structured iGaming data (slot providers, slots, news, jobs, regulators, market demand) via a
+  token-authenticated REST API (OpenAPI 3.0.3) plus a free public hosted MCP server with 13 read-only tools and llms.txt
+  files.
+url: https://raw.githubusercontent.com/api-evangelist/igaming-tools/refs/heads/main/apis.yml
+created: '2026-08-30'
+modified: '2026-08-30'
+specificationVersion: '0.21'
+tags:
+  - iGaming
+  - online casino
+  - gambling
+  - slot games
+  - slot metadata
+  - gambling regulation
+  - industry news
+  - jobs
+  - market demand
+  - analytics
+  - REST API
+  - OpenAPI
+  - MCP server
+  - llms.txt
+  - LLM tooling
+apis:
+  - name: iGamingScraper REST API
+    description: >-
+      Token-authenticated REST API providing structured iGaming data: slot providers, slots, news articles, jobs, and
+      regulatory entities. OpenAPI 3.0.3, cursor-paginated, ETag-friendly, with incremental sync support.
+    humanURL: https://i-gaming.tools/docs/
+    baseURL: https://i-gaming.tools/api/v1
+    tags:
+      - iGaming
+      - online casino
+      - gambling
+      - slot games
+      - slot metadata
+      - gambling regulation
+      - industry news
+      - jobs
+      - market demand
+      - analytics
+      - REST API
+      - OpenAPI
+      - MCP server
+      - llms.txt
+      - LLM tooling
+    properties:
+      - type: OpenAPI
+        url: https://i-gaming.tools/docs/openapi.json
+      - type: OpenAPI
+        url: https://i-gaming.tools/api/schema/?format=json
+      - type: Documentation
+        url: https://i-gaming.tools/docs/
+      - type: Documentation
+        url: https://i-gaming.tools/api/docs/
+      - type: LLMsTxt
+        url: https://i-gaming.tools/llms.txt
+      - type: LLMsTxt
+        url: https://i-gaming.tools/docs/llms.txt
+  - name: iGaming Tools MCP Server
+    description: >-
+      Free public hosted MCP server (Streamable HTTP transport, no API key, read-only) exposing 13 tools over the same
+      iGaming dataset: providers, slots, demos, specs, screenshots, regulators, news and jobs. Compatible with Claude,
+      ChatGPT, Cursor, VS Code/Copilot and Claude Code.
+    humanURL: https://i-gaming.tools/docs/
+    baseURL: https://mcp.i-gaming.tools/mcp
+    tags:
+      - iGaming
+      - online casino
+      - gambling
+      - slot games
+      - slot metadata
+      - gambling regulation
+      - industry news
+      - jobs
+      - market demand
+      - analytics
+      - REST API
+      - OpenAPI
+      - MCP server
+      - llms.txt
+      - LLM tooling
+    properties:
+      - type: MCPServer
+        url: https://mcp.i-gaming.tools/mcp
+      - type: Documentation
+        url: https://i-gaming.tools/docs/
+maintainers:
+  - FN: iGaming Tools
+    url: https://i-gaming.tools
+generated:
+  by: apis.io/add
+  model: claude-opus-4-8
+  confidence: 96
+  at: '2026-08-30T06:25:46.277Z'
