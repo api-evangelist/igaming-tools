@@ -1,0 +1,25 @@
+# iGaming Tools
+
+> Machine-readable dataset of casino slots: screenshots, symbols,
+> colour palettes, RTP, volatility, providers and metadata.
+> REST API available for structured access.
+
+## Catalog
+
+- [https://i-gaming.tools/slot-games/](https://i-gaming.tools/slot-games/) — Slots catalog with verified capture data
+- [https://i-gaming.tools/news/](https://i-gaming.tools/news/) — Industry news
+- [https://i-gaming.tools/jobs/](https://i-gaming.tools/jobs/) — Jobs API showcase
+
+## Developer Docs
+
+- [https://i-gaming.tools/docs/](https://i-gaming.tools/docs/) — Developer documentation hub
+- [https://i-gaming.tools/docs/quickstart.md](https://i-gaming.tools/docs/quickstart.md) — Quickstart (Markdown)
+- [https://i-gaming.tools/docs/authentication.md](https://i-gaming.tools/docs/authentication.md) — Authentication (Markdown)
+- [https://i-gaming.tools/docs/providers.md](https://i-gaming.tools/docs/providers.md) — Providers API Reference (Markdown)
+- [https://i-gaming.tools/docs/slots.md](https://i-gaming.tools/docs/slots.md) — Slots API Reference (Markdown)
+- [https://i-gaming.tools/docs/llms.txt](https://i-gaming.tools/docs/llms.txt) — Full docs section index
+
+## API
+
+- [https://i-gaming.tools/docs/openapi.json](https://i-gaming.tools/docs/openapi.json) — OpenAPI 3.0 schema, served as `application/json`
+- [https://i-gaming.tools/api/docs/](https://i-gaming.tools/api/docs/) — Interactive Swagger explorer

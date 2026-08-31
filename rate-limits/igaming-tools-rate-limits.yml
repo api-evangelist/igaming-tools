@@ -1,0 +1,76 @@
+generated: '2026-08-30'
+method: searched
+source: https://i-gaming.tools/docs/rate-limits.md
+docs: https://i-gaming.tools/docs/rate-limits/
+name: iGaming Tools rate limits and quotas
+description: >-
+  Two INDEPENDENT limits govern the REST API and the provider is explicit that they are
+  different things: a per-minute technical throttle that answers 429, and a monthly
+  billing quota that answers 402. The distinction is documented in prose, in the OpenAPI
+  info block, and in per-operation response components — an unusually complete treatment.
+  The MCP server is a third surface with a per-IP throttle whose value is not published.
+limit_count: 3
+limits:
+- name: Technical rate limit
+  scope: per-account
+  window: 1 minute
+  limit: 100
+  burst: null
+  applies_to: every REST endpoint
+  status_on_exhaustion: 429
+  error_code: throttled
+  response_headers:
+  - Retry-After
+  counted: >-
+    Every request regardless of outcome — enforced before the response is produced, so
+    304s and 4xx still count toward it.
+  source: https://i-gaming.tools/pricing/
+- name: Monthly billing quota (free tier)
+  scope: per-account
+  window: 1 calendar month (UTC)
+  limit: 10000
+  burst: null
+  reset: 1st of each calendar month, refilled automatically
+  status_on_exhaustion: 402
+  error_code: quota_exhausted
+  response_headers:
+  - X-Quota-Free-Remaining
+  - X-Quota-Paid-Balance
+  - X-Quota-Resets-At
+  counted: >-
+    Only successful 2xx responses decrement it. 304 Not Modified, 4xx and 5xx do not.
+    /stats/, /news/stats/ and /jobs/stats/ never decrement it and may be polled freely.
+  source: https://i-gaming.tools/docs/rate-limits.md
+- name: MCP per-IP throttle
+  scope: per-ip
+  window: null
+  limit: null
+  status_on_exhaustion: null
+  applies_to: https://mcp.i-gaming.tools/mcp
+  counted: Not metered against any quota.
+  note: >-
+    Provider says "A per-IP rate limit applies — heavy or automated use may be throttled"
+    but publishes no number, window or exhaustion status code. Recorded as a documented
+    limit with an undocumented value, not as an absence.
+  source: https://i-gaming.tools/docs/mcp.md
+response_headers:
+  rate_limit_standard: none
+  note: >-
+    The API does NOT emit RFC 9331 RateLimit-* or X-RateLimit-* headers. The runtime
+    signal it does emit is the quota triple (X-Quota-Free-Remaining, X-Quota-Paid-Balance,
+    X-Quota-Resets-At) on 2xx/304 plus Retry-After on 429. An agent can therefore see how
+    much monthly budget is left, but cannot see how much of the per-minute window remains
+    until it is already throttled.
+  documented_in_spec: true
+  spec_location: components.headers in openapi/igaming-tools-openapi.json
+retry_guidance:
+  documented: true
+  strategy: Read Retry-After on 429 and sleep that many seconds before retrying.
+  sample_code: Python requests retry loop published at https://i-gaming.tools/docs/rate-limits.md
+x-evidence:
+- url: https://i-gaming.tools/docs/rate-limits.md
+  status: 200
+- url: https://i-gaming.tools/pricing/
+  status: 200
+- url: https://i-gaming.tools/docs/mcp.md
+  status: 200

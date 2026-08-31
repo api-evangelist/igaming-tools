@@ -1,0 +1,118 @@
+generated: '2026-08-30'
+method: probed
+source: https://mcp.i-gaming.tools/mcp
+name: iGaming Tools MCP Server
+description: >-
+  Free, public, unauthenticated hosted MCP server exposing the iGaming Tools catalog
+  (slot providers, slots, series, themes, features, search demand, regulators, industry
+  news, jobs and news sources) as 17 read-only tools over Streamable HTTP. Probed live:
+  initialize -> notifications/initialized -> tools/list returned all 17 tool definitions
+  with full inputSchema, with no credential of any kind.
+deployment:
+  mode: remote
+  endpoint: https://mcp.i-gaming.tools/mcp
+  install: null
+  package: null
+  auth: none
+  verified: probed
+server_info:
+  name: iGaming Tools MCP
+  version: 3.4.7
+  protocol_version: '2025-06-18'
+  transport: streamable-http
+  capabilities:
+    tools: true
+    resources: true
+    prompts: true
+    logging: true
+    experimental:
+    - io.modelcontextprotocol/ui
+x-evidence:
+  fetched: '2026-08-30'
+  url: https://mcp.i-gaming.tools/mcp
+  http_status: 200
+  content_type: text/event-stream
+  session_header: mcp-session-id
+  note: >-
+    A bare tools/list without the initialize handshake returns HTTP 400. That is correct
+    MCP protocol, not a broken server — the session id issued by initialize must be sent
+    back as the mcp-session-id header. resources/list and prompts/list both returned
+    empty arrays, so the server advertises those capabilities but ships none today.
+  raw: mcp/igaming-tools-mcp-tools.json
+docs: https://i-gaming.tools/docs/mcp/
+docs_markdown: https://i-gaming.tools/docs/mcp.md
+status: live
+metering:
+  metered: false
+  note: >-
+    Provider states MCP requests are not metered and require no account or key; a per-IP
+    rate limit applies. Source: https://i-gaming.tools/docs/rate-limits.md and
+    https://i-gaming.tools/pricing/.
+clients_documented:
+- Claude (claude.ai / Claude Desktop, custom connector)
+- ChatGPT (Developer Mode connector)
+- Cursor (~/.cursor/mcp.json)
+- VS Code / GitHub Copilot (.vscode/mcp.json, type http)
+- Claude Code (claude mcp add --transport http igaming https://mcp.i-gaming.tools/mcp)
+- Gemini CLI (httpUrl)
+- OpenAI Codex CLI
+- Windsurf
+- Zed
+- OpenAI Responses API (type mcp, require_approval never)
+tools:
+- name: search_providers
+  description: Search/list iGaming slot providers (casino game studios).
+  parameters: [query, has_news, country, established_after, established_before, cursor, page_size]
+- name: get_provider
+  description: 'Get full provider profile: firmographics, licensing, offices, counts, HATEOAS links.'
+  parameters: [slug]
+- name: list_provider_slots
+  description: List slots made by a specific provider, with structural filters.
+  parameters: [slug, volatility, mechanic, jackpot_type, has_bonus_buy, theme, feature, cursor, page_size]
+- name: get_provider_demand
+  description: 'Get demand/popularity snapshot for a provider: computed_at, metrics, top_slots.'
+  parameters: [slug]
+- name: search_slots
+  description: Search and list public slots by RTP, volatility, mechanic, jackpot tier, bonus buy, theme, feature, series and release window.
+  parameters: [volatility, mechanic, jackpot_type, has_bonus_buy, provider, theme, feature, series, search, released_after, released_before, rtp_min, rtp_max, game_category, max_win_min, max_win_max, ordering, cursor, page_size]
+- name: get_slot
+  description: 'Get full slot profile: data (RTP/volatility/mechanics), spec_sheet, assets.'
+  parameters: [slug]
+- name: get_slot_demand
+  description: 'Get per-slot search demand: aggregate plus a Country x Month matrix.'
+  parameters: [slug]
+- name: list_series
+  description: List slot series (game families, e.g. Big Bass, Wolf Gold).
+  parameters: [provider, cursor, page_size]
+- name: get_series
+  description: Get a slot series (game family) summary plus a short roster.
+  parameters: [slug]
+- name: list_themes
+  description: List slot themes with slugs and alternative spellings.
+  parameters: [cursor, page_size]
+- name: list_features
+  description: List slot features (gameplay mechanics) with slugs and alternative spellings.
+  parameters: [cursor, page_size]
+- name: get_demand_cut
+  description: 'Demand cut: which slots are searched in a given market, ranked by 12-month volume.'
+  parameters: [country, by, ordering, volatility, mechanic, jackpot_type, has_bonus_buy, provider, theme, feature, search, released_after, released_before, rtp_min, rtp_max, game_category, cursor, page_size]
+- name: list_news
+  description: List iGaming industry news articles.
+  parameters: [brand_slug, brand_kind, host, language, published_after, published_before, cursor, page_size]
+- name: list_jobs
+  description: List iGaming job vacancies.
+  parameters: [igaming_segment, country, remote_mode, employment_type, seniority, company, city, q, posted_after, posted_before, include_closed, source, cursor, page_size]
+- name: list_regulators
+  description: Search/list iGaming regulators (UKGC, MGA, GGL, ANJ, etc.).
+  parameters: [query, country, cursor, page_size]
+- name: get_regulator
+  description: 'Get full regulator profile: jurisdiction, authority_for, statutory_authority, hosts.'
+  parameters: [slug]
+- name: list_sources
+  description: List active news-parsing sources (hosts) with brand attribution.
+  parameters: [cursor, page_size]
+tool_count: 17
+discrepancies:
+- claim: apis.yml and the original submission describe "13 read-only tools".
+  observed: The live server returned 17 tools on 2026-08-30, and the provider's own /docs/mcp.md also says 17.
+  resolution: 17 is correct; the 13 figure is stale and has been corrected in apis.yml.

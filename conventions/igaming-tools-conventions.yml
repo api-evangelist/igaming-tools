@@ -1,0 +1,159 @@
+generated: '2026-08-30'
+method: searched
+source: https://i-gaming.tools/docs/conventions.md
+docs: https://i-gaming.tools/docs/conventions/
+name: iGaming Tools API conventions
+description: >-
+  Cross-cutting runtime semantics for the iGaming Tools REST API, read from the provider's
+  published conventions, sync, errors and rate-limit guides and cross-checked against the
+  OpenAPI 3.0.3 document. The API is entirely read-only — 29 operations, all GET — which
+  determines the answer to several of the dimensions below.
+auth:
+  style: apiKey header
+  header: 'Authorization: Token <hex>'
+  note: Literal "Token" prefix, not "Bearer". See authentication/igaming-tools-authentication.yml.
+  cross_ref: authentication/igaming-tools-authentication.yml
+idempotency:
+  supported: na
+  header: null
+  retention: null
+  note: >-
+    NOT APPLICABLE, not missing. Every one of the 29 published operations is a GET; there
+    is no unsafe method anywhere in the contract, so there is nothing for an idempotency
+    key to protect. GET is idempotent by HTTP definition. No Idempotency-Key header is
+    documented and none is needed.
+  cross_ref: openapi/igaming-tools-openapi.json
+conditional_requests:
+  supported: true
+  request_header: If-None-Match
+  response_header: ETag
+  status: 304
+  scope: single-resource endpoints
+  economics: >-
+    A 304 does NOT decrement the monthly quota but DOES count toward the per-minute rate
+    limit. The provider states plainly that conditional requests are the cheapest way to
+    poll. This is the single most useful runtime fact in the contract for an agent on the
+    free tier.
+  source: https://i-gaming.tools/docs/sync.md
+pagination:
+  style: cursor
+  offset_supported: false
+  request_params:
+  - cursor
+  - page_size
+  response_fields:
+  - next
+  - previous
+  - results
+  max_page_size: 100
+  note: >-
+    All list endpoints are cursor-paginated with no OFFSET. Follow the opaque next/previous
+    URLs from the response envelope rather than constructing cursors. Page size is capped
+    at 100 rows on every plan.
+  source: https://i-gaming.tools/docs/conventions.md
+incremental_sync:
+  supported: true
+  request_param: updated_since
+  response_header: X-Sync-Timestamp
+  semantics: >-
+    X-Sync-Timestamp is the START-of-request timestamp, not the end, so changes made while
+    the client was paginating are not lost. Store it and pass it back as ?updated_since=
+    on the next run.
+  tombstones:
+    supported: true
+    operations:
+    - providers_ids_list
+    - slots_ids_list
+    note: >-
+      Items unpublished between syncs do not appear in delta results. Diff the full slug
+      set from GET /api/v1/{providers|slots}/ids/ against the local set to detect deletions.
+  source: https://i-gaming.tools/docs/sync.md
+field_expansion:
+  supported: false
+  sparse_fieldsets: false
+  note: No expand= or fields= parameter is documented or present in the spec.
+metadata:
+  custom_metadata_supported: false
+  note: Read-only catalog API; consumers cannot attach metadata to provider records.
+request_id_tracing:
+  supported: false
+  header: null
+  note: >-
+    No request-id / correlation-id response header is documented in the guides or declared
+    in components.headers. The declared response headers are ETag, X-Sync-Timestamp,
+    Retry-After and the three X-Quota-* headers.
+versioning:
+  style: uri-path
+  current: v1
+  path_prefix: /api/v1/
+  spec_version: 1.0.0
+  header_versioning: false
+  note: Version is pinned in the URL path. No Accept-header or date-based versioning.
+error_envelope:
+  spec_shape:
+    fields: [detail, code]
+    content_type: application/json
+    example: '{"detail": "Request was throttled. Try again later.", "code": "throttled"}'
+    source: components.responses.Err4xx in openapi/igaming-tools-openapi.json
+  docs_shape:
+    fields: [error.code, error.message, error.detail]
+    example: '{"error": {"code": "quota_exhausted", "message": "Monthly quota has been depleted.", "detail": {}}}'
+    source: https://i-gaming.tools/docs/errors.md
+  rfc9457: false
+  discrepancy: >-
+    THE TWO PUBLISHED SHAPES DISAGREE. The OpenAPI declares a FLAT envelope
+    {detail, code} in all nine Err* response components; the human error guide documents a
+    NESTED envelope {error: {code, message, detail}}. An integrator following the guide
+    would parse the wrong field names. The spec is machine-readable and consistent across
+    all 29 operations, so it is the more reliable of the two, but this needs a provider
+    correction. Reported as a finding, not resolved here.
+  cross_ref: errors/igaming-tools-problem-types.yml
+rate_limit_signaling:
+  headers: [Retry-After, X-Quota-Free-Remaining, X-Quota-Paid-Balance, X-Quota-Resets-At]
+  standard: none
+  cross_ref: rate-limits/igaming-tools-rate-limits.yml
+timestamps:
+  format: ISO-8601 UTC
+  example: '2026-07-14T12:34:56Z'
+  note: The updated_since filter accepts any valid ISO-8601 datetime with a timezone.
+null_semantics:
+  documented: true
+  rule: >-
+    A null value means "not yet available", NOT "not applicable". Fields absent from the
+    response schema are not supported in the current version. The provider also states no
+    field is ever inferred — an unreadable value is rendered as an em dash rather than guessed.
+  source: https://i-gaming.tools/docs/conventions.md
+asset_versioning:
+  documented: true
+  rule: >-
+    Media assets (screenshots, icons) carry a `version` field for cache-busting. Display
+    from `url`; re-fetch when `version` changes.
+dry_run_mode:
+  supported: na
+  note: Read-only API — there is no mutating call to rehearse.
+reversibility:
+  applicable: false
+  grade: na
+  write_surface: false
+  write_operations: 0
+  reversal_operations: []
+  note: >-
+    NOT APPLICABLE. All 29 operations in the published contract are GET; the API creates,
+    changes and destroys nothing on the provider's side, so there is no action for an agent
+    to take back and no window to state. The MCP server is likewise declared read-only by
+    the provider ("Every tool is read-only — none of them change anything") and the live
+    tools/list confirms it: 17 tools, all search/get/list. Reversibility, dry_run_mode and
+    idempotency are all `na` here for the same single reason, and that `na` is a fact about
+    the product shape rather than a gap in the documentation.
+  evidence:
+  - source: openapi/igaming-tools-openapi.json
+    detail: 29 operations, 29 of them GET, 0 POST/PUT/PATCH/DELETE.
+  - url: https://i-gaming.tools/docs/mcp.md
+    status: 200
+    detail: 'Provider statement: "Every tool is read-only — none of them change anything."'
+cross_links:
+  errors: errors/igaming-tools-problem-types.yml
+  lifecycle: lifecycle/igaming-tools-lifecycle.yml
+  authentication: authentication/igaming-tools-authentication.yml
+  rate_limits: rate-limits/igaming-tools-rate-limits.yml
+  plans: plans/igaming-tools-plans-pricing.yml

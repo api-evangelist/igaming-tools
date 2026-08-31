@@ -1,0 +1,91 @@
+generated: '2026-08-30'
+method: searched
+source: https://i-gaming.tools/docs/
+name: iGaming Tools API lifecycle
+description: >-
+  Versioning, deprecation, status and support posture, established by reading the
+  published docs and probing the conventional locations. The API is young and small and
+  the lifecycle surface reflects that: a URI-versioned v1 with no deprecation policy,
+  no status page and no changelog.
+versioning:
+  scheme: uri-path
+  current_version: v1
+  spec_version: 1.0.0
+  path_prefix: /api/v1/
+  policy_published: false
+  note: >-
+    A version is pinned in the path and in info.version, but no written policy states how
+    long v1 is supported, how a v2 would be introduced, or what constitutes a breaking
+    change. There is one soft forward-compatibility rule in the conventions guide: "Fields
+    absent from the response schema are not supported in the current version."
+deprecation:
+  policy_published: false
+  sunset_header: false
+  deprecation_header: false
+  rfc8594: false
+  deprecated_operations: []
+  note: >-
+    No RFC 8594 Sunset or Deprecation header is declared anywhere in the OpenAPI, and no
+    operation carries `deprecated: true`. No deprecation or end-of-life policy page was
+    found. Probed https://i-gaming.tools/changelog/ (404).
+changelog:
+  published: false
+  url: null
+  probed:
+  - url: https://i-gaming.tools/changelog/
+    status: 404
+  - url: https://i-gaming.tools/blog/
+    status: 404
+  note: >-
+    No dated changelog or release-notes surface. The MCP server does report a
+    serverInfo.version of 3.4.7, so the provider is versioning that component internally,
+    but nothing is published for consumers to diff against.
+status_page:
+  published: false
+  url: null
+  probed:
+  - url: https://i-gaming.tools/status/
+    status: 404
+  note: >-
+    No status page, no statuspage.io / instatus / betteruptime subdomain surfaced from the
+    site or its footer. The About page states the team runs its own monitoring and
+    alerting stack, but nothing is exposed publicly.
+sla:
+  published: false
+  note: >-
+    No uptime or latency commitment is published. The terms of service at
+    https://i-gaming.tools/terms/ is the only contractual document.
+support:
+  channels:
+  - type: email
+    value: support@i-gaming.tools
+    source: OpenAPI info.contact.email
+  - type: docs
+    value: https://i-gaming.tools/docs/
+  - type: telegram
+    value: https://t.me/igaming_tools/
+  dedicated_support_page: false
+  probed:
+  - url: https://i-gaming.tools/support/
+    status: 404
+  - url: https://i-gaming.tools/corrections/
+    status: 404
+  note: >-
+    The site footer links to /support/ and /corrections/; both return 404. Those are the
+    provider's own dead links, recorded here rather than repeated as pointers in apis.yml.
+maturity:
+  stage: generally-available
+  evidence: >-
+    Self-serve account creation, a published free quota, a stable /api/v1/ prefix and a
+    complete OpenAPI with examples on every operation. No beta/preview labeling appears on
+    any operation.
+roadmap:
+  published: partial
+  items:
+  - item: WordPress plugin
+    status: coming-soon
+    source: https://i-gaming.tools/docs/wordpress-plugin.md
+    note: Documented as "Coming soon" with a described shortcode and sync design; not shipped.
+  - item: Team member profile pages
+    status: planned
+    source: https://i-gaming.tools/about/

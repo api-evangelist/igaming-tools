@@ -1,0 +1,159 @@
+generated: '2026-08-30'
+method: derived
+source: >-
+  mcp/igaming-tools-mcp-tools.json (live tools/list, 17 tools) bound against
+  openapi/igaming-tools-openapi.json (OpenAPI 3.0.3, 29 operations)
+name: iGaming Tools MCP tool -> REST operation crosswalk
+description: >-
+  Both surfaces were readable without credentials — the MCP tool schemas came from a live
+  unauthenticated tools/list, and the REST operations from the provider's published
+  OpenAPI — so every binding below is name-and-parameter verified rather than guessed.
+  Every MCP tool maps 1:1 onto exactly one REST operation; the MCP server is a strict
+  read-only subset of the REST API, exactly as the provider's docs claim.
+surfaces:
+  openapi:
+    file: openapi/igaming-tools-openapi.json
+    url: https://i-gaming.tools/docs/openapi.json
+    gated: false
+    note: Spec is public; CALLING the API requires an Authorization Token header.
+  mcp:
+    url: https://mcp.i-gaming.tools/mcp
+    gated: false
+    note: tools/list returned full inputSchemas anonymously after the initialize handshake.
+  graphql: null
+crosswalk:
+- tool: search_providers
+  category: providers
+  rest: [providers_list]
+  binding: GET /api/v1/providers/
+  confidence: high
+  note: Tool params query/has_news/country/established_after/established_before/cursor/page_size are a subset of the REST query parameters.
+- tool: get_provider
+  category: providers
+  rest: [providers_retrieve]
+  binding: GET /api/v1/providers/{slug}/
+  confidence: high
+- tool: list_provider_slots
+  category: providers
+  rest: [providers_slots_list]
+  binding: GET /api/v1/providers/{slug}/slots/
+  confidence: high
+- tool: get_provider_demand
+  category: demand
+  rest: [providers_demand_retrieve]
+  binding: GET /api/v1/providers/{slug}/demand/
+  confidence: high
+- tool: search_slots
+  category: slots
+  rest: [slots_list]
+  binding: GET /api/v1/slots/
+  confidence: high
+  note: Widest parameter surface on both sides (18 filters), matching one-for-one.
+- tool: get_slot
+  category: slots
+  rest: [slots_retrieve]
+  binding: GET /api/v1/slots/{slug}/
+  confidence: high
+- tool: get_slot_demand
+  category: demand
+  rest: [slots_demand_retrieve]
+  binding: GET /api/v1/slots/{slug}/demand/
+  confidence: high
+- tool: list_series
+  category: taxonomy
+  rest: [series_list]
+  binding: GET /api/v1/series/
+  confidence: high
+- tool: get_series
+  category: taxonomy
+  rest: [series_retrieve]
+  binding: GET /api/v1/series/{slug}/
+  confidence: high
+- tool: list_themes
+  category: taxonomy
+  rest: [themes_list]
+  binding: GET /api/v1/themes/
+  confidence: high
+- tool: list_features
+  category: taxonomy
+  rest: [features_list]
+  binding: GET /api/v1/features/
+  confidence: high
+- tool: get_demand_cut
+  category: demand
+  rest: [demand_list]
+  binding: GET /api/v1/demand/
+  confidence: high
+  note: Tool requires `country`; the REST operation takes the same cut parameters plus a `by` dimension selector.
+- tool: list_news
+  category: news
+  rest: [news_list]
+  binding: GET /api/v1/news/
+  confidence: high
+- tool: list_jobs
+  category: jobs
+  rest: [jobs_list]
+  binding: GET /api/v1/jobs/
+  confidence: high
+- tool: list_regulators
+  category: regulators
+  rest: [regulators_list]
+  binding: GET /api/v1/regulators/
+  confidence: high
+- tool: get_regulator
+  category: regulators
+  rest: [regulators_retrieve]
+  binding: GET /api/v1/regulators/{slug}/
+  confidence: high
+- tool: list_sources
+  category: sources
+  rest: [sources_list]
+  binding: GET /api/v1/sources/
+  confidence: high
+mcp_only: []
+rest_only:
+- operation: providers_ids_list
+  binding: GET /api/v1/providers/ids/
+  reason: Tombstone-reconcile slug dump for incremental sync — a bulk-mirroring primitive, deliberately absent from a read-only assistant surface.
+- operation: slots_ids_list
+  binding: GET /api/v1/slots/ids/
+  reason: Same tombstone-reconcile role as providers_ids_list.
+- operation: providers_jobs_list
+  binding: GET /api/v1/providers/{slug}/jobs/
+  reason: Reachable from the MCP side only via list_jobs with a company filter.
+- operation: providers_news_list
+  binding: GET /api/v1/providers/{slug}/news/
+  reason: Reachable from the MCP side only via list_news with brand_slug.
+- operation: providers_team_list
+  binding: GET /api/v1/providers/{slug}/team/
+  reason: No MCP equivalent — key-people data is REST-only.
+- operation: regulators_news_list
+  binding: GET /api/v1/regulators/{slug}/news/
+  reason: Reachable from the MCP side only via list_news with brand_slug/brand_kind.
+- operation: jobs_retrieve
+  binding: GET /api/v1/jobs/{id}/
+  reason: No per-vacancy detail tool; list_jobs is the only jobs tool.
+- operation: news_retrieve
+  binding: GET /api/v1/news/{id}/
+  reason: No per-article detail tool; list_news is the only news tool.
+- operation: sources_retrieve
+  binding: GET /api/v1/sources/{host}/
+  reason: No per-source detail tool.
+- operation: jobs_stats_retrieve
+  binding: GET /api/v1/jobs/stats/
+  reason: Quota-exempt aggregate endpoint with no MCP counterpart.
+- operation: news_stats_retrieve
+  binding: GET /api/v1/news/stats/
+  reason: Quota-exempt aggregate endpoint with no MCP counterpart.
+- operation: stats_retrieve
+  binding: GET /api/v1/stats/
+  reason: Quota-exempt catalog-wide aggregate with no MCP counterpart.
+coverage:
+  mcp_tools: 17
+  rest_operations: 29
+  tools_bound: 17
+  tools_unbound: 0
+  operations_exposed_as_tools: 17
+  operations_not_exposed: 12
+  tool_binding_rate: 1.0
+  rest_coverage_rate: 0.586

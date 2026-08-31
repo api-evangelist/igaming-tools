@@ -1,0 +1,127 @@
+generated: '2026-08-30'
+method: searched
+source: https://i-gaming.tools/docs/errors.md
+derived_from: openapi/igaming-tools-openapi.json
+docs: https://i-gaming.tools/docs/errors/
+name: iGaming Tools error catalog
+description: >-
+  Error catalog derived from the nine reusable Err* response components in the OpenAPI
+  document and enriched from the published error-handling guide. Format is a bespoke JSON
+  envelope, not RFC 9457 problem+json.
+format: custom-json
+media_type: application/json
+rfc9457: false
+envelope:
+  authoritative_shape:
+    detail: string
+    code: string
+  source_of_truth: openapi/igaming-tools-openapi.json (components.responses)
+  conflicting_docs_shape:
+    error:
+      code: string
+      message: string
+      detail: object
+  conflict_note: >-
+    The human guide at /docs/errors.md documents a nested {"error": {...}} envelope that no
+    response in the OpenAPI declares. Clients should code against the flat {detail, code}
+    shape the spec asserts on all 29 operations, and the provider should reconcile the guide.
+problem_types:
+- status: 400
+  code: invalid_parameter
+  title: Bad Request
+  detail: Invalid filter or parameter value.
+  example: Invalid value for parameter "ordering".
+  remediation: >-
+    Check enum-valued filters against the taxonomy endpoints — /themes/, /features/,
+    /series/ return the canonical slugs. An alias is not accepted as a filter value.
+  quota_decremented: false
+  spec_component: Err400 / Err400WithQuota
+- status: 401
+  code: unauthorized
+  title: Unauthorized
+  detail: Authentication credentials were not provided.
+  remediation: >-
+    Send the header `Authorization: Token <hex>`. The prefix is "Token", not "Bearer".
+    Issue a key at /account/.
+  quota_decremented: false
+  spec_component: Err401
+- status: 402
+  code: quota_exhausted
+  title: Payment Required
+  detail: Quota exhausted. Top up or wait until the monthly reset.
+  remediation: >-
+    Monthly billing quota is depleted. Wait for the 1st-of-month UTC reset, or contact
+    support@i-gaming.tools to be provisioned more. Distinct from 429 — do NOT retry with
+    backoff; retrying will not help until the quota resets. Read X-Quota-Resets-At.
+  quota_decremented: false
+  headers: [X-Quota-Free-Remaining, X-Quota-Paid-Balance, X-Quota-Resets-At]
+  spec_component: Err402
+- status: 403
+  code: forbidden
+  title: Forbidden
+  detail: Authentication credentials were not provided.
+  remediation: >-
+    This endpoint is served to a signed-in browser session and no valid session was
+    presented. An API token is not a substitute for a session on these endpoints.
+  quota_decremented: false
+  spec_component: Err403
+- status: 404
+  code: not_found
+  title: Not Found
+  detail: Resource does not exist or is not yet public.
+  remediation: >-
+    Slug may be wrong or the record may not be published yet. Reconcile against
+    /api/v1/providers/ids/ or /api/v1/slots/ids/ — a slug missing from the ids dump has
+    been unpublished.
+  quota_decremented: false
+  spec_component: Err404 / Err404WithQuota
+- status: 429
+  code: throttled
+  title: Too Many Requests
+  detail: Request was throttled. Try again later.
+  remediation: >-
+    Per-minute technical cap (100/min per account) exceeded. Sleep for the number of
+    seconds in the Retry-After header, then retry. Distinct from 402 — this one IS
+    retryable.
+  quota_decremented: false
+  headers: [Retry-After]
+  spec_component: Err429 / Err429WithQuota
+- status: 500
+  code: null
+  title: Internal Server Error
+  detail: Documented in the error guide; no schema component is declared for it in the spec.
+  remediation: Retry with exponential backoff; escalate to support@i-gaming.tools if persistent.
+  quota_decremented: false
+  spec_component: null
+non_error_statuses:
+- status: 304
+  title: Not Modified
+  note: >-
+    ETag match on If-None-Match. Not an error. Does not decrement the monthly quota but
+    does count toward the per-minute limit.
+disambiguation:
+  '402_vs_429': >-
+    402 means the monthly BUDGET is gone — retrying is useless until the reset. 429 means
+    the per-minute PACE is too fast — retrying after Retry-After will succeed. Conflating
+    them is the most likely integration error against this API, and the provider documents
+    the distinction in three separate places.
+error_count: 7
+live_observation:
+  probed: '2026-08-30'
+  url: https://i-gaming.tools/api/v1/
+  method: GET
+  headers_sent: none
+  http_status: 401
+  content_type: application/json
+  body: '{"detail":"Authentication credentials were not provided.","code":"unauthorized"}'
+  conclusion: >-
+    The live API returns the FLAT {detail, code} envelope declared in the OpenAPI, not the
+    nested {"error": {...}} envelope documented in /docs/errors.md. The spec is correct and
+    the human guide is wrong. Clients should parse `detail` and `code` at the top level.
+x-evidence:
+- url: https://i-gaming.tools/docs/errors.md
+  status: 200
+- url: https://i-gaming.tools/api/v1/
+  status: 401
+- url: https://i-gaming.tools/docs/openapi.json
+  status: 200

@@ -1,0 +1,50 @@
+# iGaming Tools Developer Docs
+
+> REST API documentation for iGaming Tools: slot providers, slots, news, jobs.
+> Guides, reference endpoints, code examples.
+
+## Guides
+
+### Getting Started
+
+- [https://i-gaming.tools/docs/quickstart/](https://i-gaming.tools/docs/quickstart/) — Quickstart
+- [https://i-gaming.tools/docs/quickstart.md](https://i-gaming.tools/docs/quickstart.md) — Quickstart (Markdown)
+- [https://i-gaming.tools/docs/authentication/](https://i-gaming.tools/docs/authentication/) — Authentication
+- [https://i-gaming.tools/docs/authentication.md](https://i-gaming.tools/docs/authentication.md) — Authentication (Markdown)
+- [https://i-gaming.tools/docs/rate-limits/](https://i-gaming.tools/docs/rate-limits/) — Rate Limits & Quotas
+- [https://i-gaming.tools/docs/rate-limits.md](https://i-gaming.tools/docs/rate-limits.md) — Rate Limits & Quotas (Markdown)
+
+### Core Concepts
+
+- [https://i-gaming.tools/docs/sync/](https://i-gaming.tools/docs/sync/) — Incremental Sync
+- [https://i-gaming.tools/docs/sync.md](https://i-gaming.tools/docs/sync.md) — Incremental Sync (Markdown)
+- [https://i-gaming.tools/docs/errors/](https://i-gaming.tools/docs/errors/) — Error Handling
+- [https://i-gaming.tools/docs/errors.md](https://i-gaming.tools/docs/errors.md) — Error Handling (Markdown)
+- [https://i-gaming.tools/docs/conventions/](https://i-gaming.tools/docs/conventions/) — API Conventions
+- [https://i-gaming.tools/docs/conventions.md](https://i-gaming.tools/docs/conventions.md) — API Conventions (Markdown)
+
+### Channels
+
+- [https://i-gaming.tools/docs/wordpress-plugin/](https://i-gaming.tools/docs/wordpress-plugin/) — WordPress Plugin
+- [https://i-gaming.tools/docs/wordpress-plugin.md](https://i-gaming.tools/docs/wordpress-plugin.md) — WordPress Plugin (Markdown)
+- [https://i-gaming.tools/docs/mcp/](https://i-gaming.tools/docs/mcp/) — MCP Server
+- [https://i-gaming.tools/docs/mcp.md](https://i-gaming.tools/docs/mcp.md) — MCP Server (Markdown)
+
+## API Reference
+
+- [https://i-gaming.tools/docs/providers/](https://i-gaming.tools/docs/providers/) — Providers API Reference
+- [https://i-gaming.tools/docs/slots/](https://i-gaming.tools/docs/slots/) — Slots API Reference
+- [https://i-gaming.tools/docs/series/](https://i-gaming.tools/docs/series/) — Series API Reference
+- [https://i-gaming.tools/docs/themes/](https://i-gaming.tools/docs/themes/) — Themes API Reference
+- [https://i-gaming.tools/docs/features/](https://i-gaming.tools/docs/features/) — Features API Reference
+- [https://i-gaming.tools/docs/demand/](https://i-gaming.tools/docs/demand/) — Demand API Reference
+- [https://i-gaming.tools/docs/news/](https://i-gaming.tools/docs/news/) — News API Reference
+- [https://i-gaming.tools/docs/jobs/](https://i-gaming.tools/docs/jobs/) — Jobs API Reference
+- [https://i-gaming.tools/docs/regulators/](https://i-gaming.tools/docs/regulators/) — Regulators API Reference
+- [https://i-gaming.tools/docs/sources/](https://i-gaming.tools/docs/sources/) — Sources API Reference
+
+## OpenAPI Schema
+
+- [https://i-gaming.tools/docs/openapi.json](https://i-gaming.tools/docs/openapi.json) — OpenAPI 3.0, served as `application/json`
+- [https://i-gaming.tools/api/schema/](https://i-gaming.tools/api/schema/) — same document, IANA type `application/vnd.oai.openapi` (YAML by default, JSON with `Accept: application/json`)
+- [https://i-gaming.tools/api/docs/](https://i-gaming.tools/api/docs/) — Interactive Swagger Explorer

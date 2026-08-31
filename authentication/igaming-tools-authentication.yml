@@ -1,0 +1,61 @@
+generated: '2026-08-30'
+method: searched
+source: https://i-gaming.tools/docs/authentication.md
+docs: https://i-gaming.tools/docs/authentication/
+spec: openapi/igaming-tools-openapi.json
+summary:
+  types:
+  - apiKey
+  api_key_in:
+  - header
+  oauth2: false
+  openid_connect: false
+  mutual_tls: false
+  self_service_signup: true
+  note: >-
+    One scheme, applied to every operation in the spec. The MCP server at
+    mcp.i-gaming.tools is a SEPARATE surface with no authentication at all — probed
+    anonymously on 2026-08-30 and it returned the full tool list.
+schemes:
+- name: TokenAuth
+  type: apiKey
+  in: header
+  parameter: Authorization
+  format: Token <hex>
+  description: >-
+    DRF-style token. Header value is the literal word "Token", a space, then the hex key —
+    not "Bearer". Create a free account and issue your own key at /account/; the key is
+    shown once, at creation. Free tier included, no card required.
+  sources:
+  - openapi/igaming-tools-openapi.json
+  - https://i-gaming.tools/docs/authentication.md
+token_lifecycle:
+  expires: false
+  note: Tokens do not expire by default.
+  issuance: Self-service from the browser dashboard at https://i-gaming.tools/account/ after email confirmation.
+  rotation: Multiple keys may be held per account; any of them can be revoked from the same dashboard page.
+  scope: Each token is scoped to one user account; quota lives on the account, not on the key.
+  key_management_channel: browser-only
+  security_property: >-
+    Provider states key management is browser-only by design: "a leaked key cannot revoke
+    your other keys or mint itself a replacement." Source: /docs/authentication.md.
+  display: Key is displayed once at creation and never again.
+auth_errors:
+- status: 401
+  code: unauthorized
+  meaning: Missing or invalid token.
+- status: 402
+  code: quota_exhausted
+  meaning: Authenticated but the monthly free tier or paid balance is depleted.
+- status: 403
+  code: forbidden
+  meaning: Endpoint is served to a signed-in browser session and no valid session was presented.
+- status: 429
+  code: throttled
+  meaning: Per-user requests-per-minute cap exceeded; honor Retry-After.
+scopes:
+  supported: false
+  note: >-
+    No OAuth2 or scope model is declared in the spec or the docs. Access is all-or-nothing
+    per token; there is no read/write split because the API is entirely read-only (29 GET
+    operations, zero write operations).

@@ -1,0 +1,26 @@
+generated: '2026-08-30'
+method: generated
+source: >-
+  Packaged Agent Skills generated from the iGaming Tools OpenAPI 3.0.3 captured
+  2026-08-30 at https://i-gaming.tools/docs/openapi.json (saved verbatim to
+  openapi/igaming-tools-openapi.json). Every step is grounded in an operationId verified
+  verbatim in that spec; cross-cutting rules cite ../authentication/, ../errors/,
+  ../conventions/, ../rate-limits/, ../data-model/ and ../mcp/. The provider publishes no
+  skills or AGENTS.md of its own — probed and absent — so these are generated, not searched.
+skills:
+- file: igaming-tools-incremental-catalog-sync.md
+  name: Keep a local mirror of the iGaming catalog in sync
+  api: openapi/igaming-tools-openapi.json
+  operations: [providers_list, providers_ids_list, slots_list, slots_ids_list, providers_retrieve, slots_retrieve, stats_retrieve]
+- file: igaming-tools-research-a-slot.md
+  name: Research a slot game and its family
+  api: openapi/igaming-tools-openapi.json
+  operations: [themes_list, features_list, slots_list, slots_retrieve, series_list, series_retrieve, providers_retrieve]
+- file: igaming-tools-market-demand-analysis.md
+  name: Analyse search demand for a market, a provider or a title
+  api: openapi/igaming-tools-openapi.json
+  operations: [demand_list, providers_demand_retrieve, slots_demand_retrieve, providers_list, slots_list]
+- file: igaming-tools-provider-intelligence-brief.md
+  name: Build an intelligence brief on a slot studio
+  api: openapi/igaming-tools-openapi.json
+  operations: [providers_list, providers_retrieve, providers_slots_list, providers_news_list, providers_jobs_list, providers_team_list, regulators_list, regulators_retrieve, sources_list]

@@ -1,0 +1,60 @@
+generated: '2026-08-30'
+method: searched
+source: >-
+  npm registry search, PyPI, and the provider's own docs and site footer, 2026-08-30
+name: iGaming Tools client packages
+description: >-
+  No first-party client library, SDK or CLI is published anywhere. The provider's own
+  integration guidance is raw HTTP — the quickstart is a curl command and the rate-limit
+  guide's only code sample is an inline Python `requests` retry loop, not an SDK call.
+  The agent-facing distribution channel is the hosted MCP server, which needs no package
+  at all.
+package_count: 0
+official_package_count: 0
+packages: []
+registries_searched:
+- registry: npm
+  query: igaming-tools / "igaming tools" / i-gaming.tools
+  endpoint: https://registry.npmjs.org/-/v1/search
+  result: >-
+    No package published by or for i-gaming.tools. The nearest name matches
+    (@openora/mcp, @wg-igaming/iframe-embed, @igamingcareer/igaming-components) belong to
+    unrelated companies and were rejected on ownership grounds.
+  status: 200
+- registry: pypi
+  query: igaming-tools, igamingtools
+  endpoint: https://pypi.org/pypi/<name>/json
+  result: 404 on both names.
+  status: 404
+- registry: github
+  query: github.com/igamingtools (the org linked from the site footer)
+  result: >-
+    404 — the organization does not exist. There is no public source repository to hold a
+    client library, and no GitHubOrganization pointer was emitted as a result.
+  status: 404
+- registry: cdn
+  query: provider docs for a script tag / unpkg / jsDelivr build
+  result: No browser build or embeddable script is distributed.
+  status: null
+first_party_channels:
+- channel: hosted MCP server
+  url: https://mcp.i-gaming.tools/mcp
+  package: null
+  note: >-
+    Remote endpoint, not an installable package — nothing to version. Recorded in
+    mcp/igaming-tools-mcp.yml with deployment.mode remote.
+- channel: WordPress plugin
+  status: announced-not-shipped
+  url: https://i-gaming.tools/docs/wordpress-plugin.md
+  version: null
+  published: null
+  note: >-
+    Documented as "Coming soon" with a described [igaming_slot] shortcode. Not present in
+    the WordPress.org plugin directory and no download is offered. Recorded as a roadmap
+    item in lifecycle/, not as a package.
+abandonment_signal:
+  assessable: false
+  note: >-
+    The strongest decay signal this step looks for — a first-party SDK whose last release
+    predates the API it wraps — cannot be read here, because no SDK exists to date. The
+    absence is a coverage fact about the provider, not a stale-package finding.

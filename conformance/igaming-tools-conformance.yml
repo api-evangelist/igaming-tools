@@ -1,0 +1,175 @@
+generated: '2026-08-30'
+method: derived
+source: openapi/igaming-tools-openapi.json
+enriched_from:
+- https://i-gaming.tools/docs/conventions/
+- https://i-gaming.tools/docs/errors/
+- https://i-gaming.tools/docs/sync/
+- https://i-gaming.tools/terms/
+name: iGaming Tools standards conformance
+description: >-
+  Cross-cutting and domain standards asserted against the published OpenAPI 3.0.3 contract
+  and the provider's own guides. Every `conforms: true` below points at a location in the
+  contract or a provider statement; every `conforms: false` is an observed absence, not an
+  assumption.
+standards:
+- id: openapi
+  name: OpenAPI Specification
+  version: 3.0.3
+  conforms: true
+  evidence: >-
+    Two byte-identical documents served at https://i-gaming.tools/docs/openapi.json
+    (application/json) and https://i-gaming.tools/api/schema/?format=json
+    (application/vnd.oai.openapi+json). 29 operations, 59 component schemas, 9 reusable
+    error responses, 6 reusable headers, operationId + summary + description + tags +
+    examples on every operation.
+- id: http-conditional-requests
+  name: HTTP conditional requests (RFC 9110 ETag / If-None-Match)
+  conforms: true
+  evidence: >-
+    ETag response header and If-None-Match request header declared as reusable components
+    and wired into every list and detail operation, with a documented 304 response.
+- id: retry-after
+  name: Retry-After (RFC 9110)
+  conforms: true
+  evidence: components.headers.RetryAfter, referenced from the Err429 / Err429WithQuota responses.
+- id: pagination
+  name: Cursor pagination
+  conforms: true
+  evidence: >-
+    All list operations return {next, previous, results} with an opaque `cursor` parameter
+    and no OFFSET, documented at https://i-gaming.tools/docs/conventions/.
+- id: rfc9457
+  name: RFC 9457 Problem Details for HTTP APIs
+  conforms: false
+  evidence: >-
+    Errors use a bespoke flat {detail, code} JSON envelope served as application/json.
+    No application/problem+json media type, and no type/title/status/instance members,
+    appear anywhere in the contract.
+- id: rfc9331
+  name: RateLimit header fields (RFC 9331 / draft-ietf-httpapi-ratelimit-headers)
+  conforms: false
+  evidence: >-
+    No RateLimit-* or X-RateLimit-* headers are declared. Runtime budget is signaled
+    through vendor headers X-Quota-Free-Remaining / X-Quota-Paid-Balance /
+    X-Quota-Resets-At instead.
+- id: rfc8594
+  name: RFC 8594 Sunset header
+  conforms: false
+  evidence: No Sunset or Deprecation header is declared and no operation is marked deprecated.
+- id: idempotency
+  name: Idempotency keys
+  conforms: false
+  applicable: false
+  evidence: >-
+    Not applicable — all 29 operations are GET, which is idempotent by HTTP definition.
+    There is no unsafe method in the contract for an idempotency key to protect.
+- id: oauth2
+  name: OAuth 2.0
+  conforms: false
+  evidence: >-
+    The only securityScheme is apiKey TokenAuth in the Authorization header. Probed
+    /.well-known/oauth-authorization-server and /.well-known/oauth-protected-resource on
+    both hosts — 404 on all four.
+- id: oidc
+  name: OpenID Connect
+  conforms: false
+  evidence: /.well-known/openid-configuration returned 404 on i-gaming.tools and mcp.i-gaming.tools.
+- id: mcp
+  name: Model Context Protocol
+  version: '2025-06-18'
+  conforms: true
+  evidence: >-
+    Live handshake against https://mcp.i-gaming.tools/mcp on 2026-08-30 returned
+    protocolVersion 2025-06-18, serverInfo {name "iGaming Tools MCP", version 3.4.7},
+    Streamable HTTP transport with an mcp-session-id, and 17 tools each carrying a JSON
+    Schema inputSchema. Raw response saved at mcp/igaming-tools-mcp-tools.json.
+- id: llmstxt
+  name: llms.txt
+  conforms: true
+  evidence: >-
+    Two files served as text/markdown — https://i-gaming.tools/llms.txt (site index) and
+    https://i-gaming.tools/docs/llms.txt (docs index). Both parse as llms.txt. See the
+    defect note below.
+- id: a2a
+  name: A2A Agent Card
+  conforms: false
+  evidence: >-
+    /.well-known/agent-card.json and /.well-known/agent.json returned 404 on both
+    i-gaming.tools and mcp.i-gaming.tools. No card is published, and none was authored.
+- id: asyncapi
+  name: AsyncAPI
+  conforms: false
+  applicable: false
+  evidence: >-
+    The provider ships no event, streaming or webhook surface — the integration pattern it
+    publishes instead is client-pull incremental sync (?updated_since= plus X-Sync-Timestamp
+    plus /ids/ tombstone reconcile). Not a gap; a different, documented design.
+- id: json-schema
+  name: JSON Schema
+  conforms: true
+  evidence: 59 named component schemas plus 17 MCP tool inputSchemas.
+domain_standard:
+  market: iGaming / online-casino data
+  standard_declared: false
+  evidence: >-
+    REWARD-ONLY CHECK, HONESTLY EMPTY. Nothing in the contract declares a domain standard:
+    no SCIM URN, no OData $metadata, no OpenRTB endpoint, no HL7/X12/ISO-20022 message
+    type, no OAI-PMH verb, no LTI/OneRoster shape. The iGaming market's own technical
+    standards (GLI-19/GLI-33 test standards, operator-side wallet and RGS integration
+    specs) govern game servers and operator platforms, not third-party catalog data, so
+    there is no applicable published standard for this product shape to conform to.
+    Recorded as absent rather than substituted with something adjacent.
+  note: >-
+    Regulators are DATA in this API (list_regulators returns UKGC, MGA, GGL, ANJ and
+    others), which is not the same thing as the contract conforming to a regulatory
+    standard. The distinction is deliberate.
+compliance_certifications:
+  published: false
+  probed:
+  - url: https://i-gaming.tools/.well-known/security.txt
+    status: 404
+  - url: https://i-gaming.tools/terms/
+    status: 200
+  note: >-
+    No SOC 2, ISO 27001, PCI DSS, HIPAA or FedRAMP claim appears on the site, and no trust
+    center exists. probe-security-programs.py returned vdp=none trust=none. The provider
+    handles no player funds or PII of gamblers — it documents publicly-released games — so
+    the absence is consistent with the product.
+defects_observed:
+- id: llms-txt-dead-links
+  severity: medium
+  detail: >-
+    https://i-gaming.tools/llms.txt advertises /docs/providers.md and /docs/slots.md as
+    Markdown API references. Both return 404. The docs-level llms.txt lists the correct
+    HTML paths (/docs/providers/, /docs/slots/) which do return 200, so the site-level
+    llms.txt is stale. An agent following the root llms.txt hits two dead ends.
+  evidence:
+  - url: https://i-gaming.tools/docs/providers.md
+    status: 404
+  - url: https://i-gaming.tools/docs/slots.md
+    status: 404
+  - url: https://i-gaming.tools/docs/providers/
+    status: 200
+- id: error-envelope-disagreement
+  severity: medium
+  detail: >-
+    The OpenAPI declares a flat {detail, code} error body on all nine Err* components;
+    /docs/errors.md documents a nested {"error": {code, message, detail}} body. The two
+    cannot both be right.
+- id: dead-footer-links
+  severity: low
+  detail: The site footer links /support/ and /corrections/; both return 404.
+  evidence:
+  - url: https://i-gaming.tools/support/
+    status: 404
+  - url: https://i-gaming.tools/corrections/
+    status: 404
+- id: dead-github-org
+  severity: low
+  detail: >-
+    The site footer links https://github.com/igamingtools, which returns 404 — the org does
+    not exist. No GitHubOrganization pointer was emitted for this provider as a result.
+  evidence:
+  - url: https://github.com/igamingtools
+    status: 404

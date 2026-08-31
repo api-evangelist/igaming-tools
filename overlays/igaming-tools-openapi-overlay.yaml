@@ -1,0 +1,128 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enhancements for the iGaming Tools API
+  version: 1.0.0
+extends: openapi/igaming-tools-openapi.json
+x-provenance:
+  generated: '2026-08-30'
+  method: generated
+  source: >-
+    Derived from artifacts in this repo — mcp/igaming-tools-tool-crosswalk.yml (live
+    tools/list binding), rate-limits/igaming-tools-rate-limits.yml, and the operation tag
+    census of the harvested spec. Adds only metadata that is TRUE of the provider's own
+    contract; changes no schema, path, parameter or response. The harvested spec is never
+    mutated.
+actions:
+- target: $
+  description: >-
+    Declare the eleven tag objects the operations already use. The harvested document
+    assigns tags to all 29 operations but ships an EMPTY root tags[] array, so no
+    documentation renderer or codegen tool can group or describe them.
+  update:
+    tags:
+    - name: providers
+      description: Slot game studios and brands — firmographics, licensing, aliases, hosts, and their slots, news, jobs, team and demand.
+    - name: slots
+      description: Individual slot titles — RTP and variants, volatility, max win, mechanics, paytable, bonus rounds and assets.
+    - name: series
+      description: Game families (Big Bass, Wolf Gold) grouping slots from one provider.
+    - name: themes
+      description: Visual/narrative setting taxonomy. Look the canonical slug up here before filtering — aliases are not accepted as filter values.
+    - name: features
+      description: Gameplay-mechanic taxonomy (Bonus Buy, Cluster Pays, Ante Bet). Same alias rule as themes.
+    - name: demand
+      description: Computed search-demand layer — per-slot, per-provider and per-market cuts with a computed_at staleness stamp.
+    - name: news
+      description: Ingested iGaming industry news, attributed to a brand and a source host.
+    - name: jobs
+      description: Ingested iGaming vacancies with company, location, salary, segment and structured requirements.
+    - name: regulators
+      description: Licensing authorities (UKGC, MGA, GGL, ANJ) — jurisdiction, statutory authority and hosts. Same underlying brand model as providers, discriminated by kind.
+    - name: sources
+      description: Crawled news hosts with brand attribution and 30-day article counts.
+    - name: stats
+      description: Quota-exempt aggregate statistics. Safe to poll — never decrements the monthly quota.
+- target: $.info
+  description: >-
+    Record the two runtime economics facts the provider documents in prose but does not
+    express in the machine-readable contract, so an agent reading only the spec can budget
+    correctly.
+  update:
+    x-quota-model:
+      decrements_on: [2xx]
+      exempt_statuses: ['304', 4xx, 5xx]
+      exempt_operations: [stats_retrieve, news_stats_retrieve, jobs_stats_retrieve]
+      free_tier_monthly_requests: 10000
+      rate_limit_per_minute: 100
+      source: https://i-gaming.tools/docs/rate-limits.md
+    x-write-surface:
+      has_writes: false
+      operation_count: 29
+      unsafe_operation_count: 0
+      note: >-
+        Entirely read-only. Idempotency keys, dry-run and reversibility are not applicable
+        rather than missing.
+- target: $.paths['/api/v1/stats/'].get
+  description: Flag the quota-exempt aggregate endpoint.
+  update:
+    x-quota-exempt: true
+- target: $.paths['/api/v1/news/stats/'].get
+  description: Flag the quota-exempt aggregate endpoint.
+  update:
+    x-quota-exempt: true
+- target: $.paths['/api/v1/jobs/stats/'].get
+  description: Flag the quota-exempt aggregate endpoint.
+  update:
+    x-quota-exempt: true
+- target: $.paths['/api/v1/providers/'].get
+  description: Bind to the MCP tool that fronts this operation on the free hosted server.
+  update:
+    x-mcp-tool: search_providers
+- target: $.paths['/api/v1/providers/{slug}/'].get
+  update:
+    x-mcp-tool: get_provider
+- target: $.paths['/api/v1/providers/{slug}/slots/'].get
+  update:
+    x-mcp-tool: list_provider_slots
+- target: $.paths['/api/v1/providers/{slug}/demand/'].get
+  update:
+    x-mcp-tool: get_provider_demand
+- target: $.paths['/api/v1/slots/'].get
+  update:
+    x-mcp-tool: search_slots
+- target: $.paths['/api/v1/slots/{slug}/'].get
+  update:
+    x-mcp-tool: get_slot
+- target: $.paths['/api/v1/slots/{slug}/demand/'].get
+  update:
+    x-mcp-tool: get_slot_demand
+- target: $.paths['/api/v1/series/'].get
+  update:
+    x-mcp-tool: list_series
+- target: $.paths['/api/v1/series/{slug}/'].get
+  update:
+    x-mcp-tool: get_series
+- target: $.paths['/api/v1/themes/'].get
+  update:
+    x-mcp-tool: list_themes
+- target: $.paths['/api/v1/features/'].get
+  update:
+    x-mcp-tool: list_features
+- target: $.paths['/api/v1/demand/'].get
+  update:
+    x-mcp-tool: get_demand_cut
+- target: $.paths['/api/v1/news/'].get
+  update:
+    x-mcp-tool: list_news
+- target: $.paths['/api/v1/jobs/'].get
+  update:
+    x-mcp-tool: list_jobs
+- target: $.paths['/api/v1/regulators/'].get
+  update:
+    x-mcp-tool: list_regulators
+- target: $.paths['/api/v1/regulators/{slug}/'].get
+  update:
+    x-mcp-tool: get_regulator
+- target: $.paths['/api/v1/sources/'].get
+  update:
+    x-mcp-tool: list_sources

@@ -1,0 +1,87 @@
+generated: '2026-08-30'
+method: searched
+source: https://i-gaming.tools/pricing/
+name: iGaming Tools plans and pricing
+description: >-
+  Three published access routes: a free self-serve API key with a hard monthly request
+  quota, an unpriced "talk to us" higher-volume arrangement, and an entirely free,
+  unmetered, unauthenticated MCP server. There is no self-serve checkout and no published
+  paid price point.
+currency: USD
+plan_count: 3
+priced_plan_count: 1
+self_serve_checkout: false
+plans:
+- name: Free API key
+  price: 0
+  currency: USD
+  billing_period: month
+  signup_required: true
+  card_required: false
+  included_quota:
+    requests: 10000
+    period: month
+    reset: 1st of every calendar month (UTC), refilled automatically
+  overage: null
+  overage_note: >-
+    No overage billing. When the monthly quota is exhausted the API returns 402
+    Payment Required until the reset or an account top-up.
+  limits:
+    rate_limit: 100 requests/minute per account
+    page_size_max: 100
+    endpoint_access: All endpoints, all sources
+  note: >-
+    Quota is attached to the ACCOUNT, not the key — "install our integration on ten sites
+    and they all draw from the same limit."
+- name: Higher volume
+  price: null
+  currency: USD
+  billing_period: by agreement
+  signup_required: true
+  card_required: false
+  included_quota: null
+  overage: null
+  limits:
+    rate_limit: by agreement
+  contact: support@i-gaming.tools
+  note: >-
+    Explicitly "No self-serve checkout." Provisioned onto an existing account. Provider
+    states there is no card on file and no automated billing. No numbers are published,
+    so this tier cannot be priced from public sources.
+- name: MCP server
+  price: 0
+  currency: USD
+  billing_period: null
+  signup_required: false
+  card_required: false
+  included_quota:
+    requests: unlimited
+    note: Not metered at all — no counter, no monthly quota, no registration.
+  limits:
+    rate_limit: per-IP throttle, value not published
+    access: read-only
+  endpoint: https://mcp.i-gaming.tools/mcp
+  note: >-
+    Provider frames this as a deliberate posture rather than a trial: "This isn't a trial
+    or a teaser tier — it's a deliberate choice."
+quota_accounting:
+  quota_decrementing_responses: [2xx]
+  quota_exempt_responses: ['304', 4xx, 5xx]
+  quota_exempt_operations:
+  - stats_retrieve
+  - news_stats_retrieve
+  - jobs_stats_retrieve
+  note: >-
+    Only successful 2xx responses decrement the monthly quota. 304 Not Modified does not,
+    which makes conditional (ETag / If-None-Match) polling free against the quota. The
+    three statistics endpoints never decrement it. MCP requests are not metered at all.
+  runtime_headers:
+  - X-Quota-Free-Remaining
+  - X-Quota-Paid-Balance
+  - X-Quota-Resets-At
+  source: https://i-gaming.tools/docs/rate-limits.md
+x-evidence:
+- url: https://i-gaming.tools/pricing/
+  status: 200
+- url: https://i-gaming.tools/docs/rate-limits.md
+  status: 200

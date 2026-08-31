@@ -1,0 +1,74 @@
+generated: '2026-08-30'
+method: probed
+source: direct HTTP probe of /.well-known/* on every host named in apis.yml
+name: iGaming Tools well-known discovery documents
+description: >-
+  Probe of the RFC 8615 /.well-known/ namespace on both hosts iGaming Tools operates —
+  the API + docs host (i-gaming.tools) and the hosted MCP host (mcp.i-gaming.tools).
+  Every path returned a 404. No pointer of type WellKnown or SecurityTxt is emitted:
+  this file records a verified ABSENCE, not a served surface.
+hosts:
+- host: i-gaming.tools
+  note: >-
+    Django application behind Cloudflare. Unknown /.well-known/ paths return the site's
+    real 404 page (HTTP 404, text/html, 7921 bytes) — a correct 404, not an SPA catch-all.
+  documents:
+  - path: /.well-known/security.txt
+    status: 404
+    file: null
+  - path: /.well-known/openid-configuration
+    status: 404
+    file: null
+  - path: /.well-known/oauth-authorization-server
+    status: 404
+    file: null
+  - path: /.well-known/oauth-protected-resource
+    status: 404
+    file: null
+  - path: /.well-known/api-catalog
+    status: 404
+    file: null
+  - path: /.well-known/ai-plugin.json
+    status: 404
+    file: null
+  - path: /.well-known/agent-card.json
+    status: 404
+    file: null
+  - path: /.well-known/agent.json
+    status: 404
+    file: null
+- host: mcp.i-gaming.tools
+  note: >-
+    Hosted MCP server (Streamable HTTP). Unknown paths return a bare plain-text
+    "Not Found" (HTTP 404, 9 bytes). The MCP endpoint itself is unauthenticated, so no
+    OAuth protected-resource metadata is expected or served.
+  documents:
+  - path: /.well-known/security.txt
+    status: 404
+    file: null
+  - path: /.well-known/openid-configuration
+    status: 404
+    file: null
+  - path: /.well-known/oauth-authorization-server
+    status: 404
+    file: null
+  - path: /.well-known/oauth-protected-resource
+    status: 404
+    file: null
+  - path: /.well-known/api-catalog
+    status: 404
+    file: null
+  - path: /.well-known/ai-plugin.json
+    status: 404
+    file: null
+  - path: /.well-known/agent-card.json
+    status: 404
+    file: null
+  - path: /.well-known/agent.json
+    status: 404
+    file: null
+summary:
+  hosts_probed: 2
+  paths_probed: 16
+  documents_served: 0
+  checked: '2026-08-30'

@@ -1,0 +1,183 @@
+generated: '2026-08-30'
+method: derived
+source: openapi/igaming-tools-openapi.json
+enriched_from: https://i-gaming.tools/docs/conventions/
+name: iGaming Tools data model
+description: >-
+  Entity-relationship graph derived from the 59 component schemas and the $ref / id-reference
+  fields that connect them, plus the path structure of the 29 operations. Identifiers are
+  human-readable slugs for catalog entities (provider, slot, series, theme, feature,
+  regulator) and integers for the two ingested feeds (news, jobs); news sources are keyed
+  by hostname.
+identifier_conventions:
+- entity: provider
+  key: slug
+  type: string
+  example_path: /api/v1/providers/{slug}/
+- entity: slot
+  key: slug
+  type: string
+  example_path: /api/v1/slots/{slug}/
+- entity: series
+  key: slug
+  type: string
+- entity: theme
+  key: slug
+  type: string
+- entity: feature
+  key: slug
+  type: string
+- entity: regulator
+  key: slug
+  type: string
+  note: >-
+    Providers and regulators share one underlying "brand" model — BrandShort/BrandFull are
+    returned by both /providers/ and /regulators/, discriminated by the `kind` field
+    (e.g. slot_provider vs regulator).
+- entity: news_article
+  key: id
+  type: integer
+- entity: job
+  key: id
+  type: integer
+- entity: source
+  key: host
+  type: string
+  example_path: /api/v1/sources/{host}/
+entities:
+- name: Provider
+  schemas: [BrandShort, BrandFull, ProviderDetail]
+  description: A slot game studio or brand. Firmographics, licensing, offices, aliases, hosts, counts and HATEOAS links.
+  operations: [providers_list, providers_retrieve, providers_ids_list]
+- name: Slot
+  schemas: [SlotListItem, SlotDetail]
+  description: An individual slot game title with math, mechanics, paytable and assets. SlotDetail nests data / spec_sheet / assets.
+  operations: [slots_list, slots_retrieve, slots_ids_list]
+- name: Series
+  schemas: [SeriesListItem, SeriesDetail, SeriesSlotItem, SeriesDirectoryPage]
+  description: A game family (Big Bass, Wolf Gold) grouping slots from one provider.
+  operations: [series_list, series_retrieve]
+- name: Theme
+  schemas: [TaxonomyDirectoryItem, TaxonomyDirectoryPage]
+  description: Visual/narrative setting taxonomy term with slug and aliases.
+  operations: [themes_list]
+- name: Feature
+  schemas: [TaxonomyDirectoryItem, TaxonomyDirectoryPage]
+  description: Gameplay-mechanic taxonomy term with slug and aliases.
+  operations: [features_list]
+- name: Regulator
+  schemas: [BrandShort, BrandFull]
+  description: A licensing authority with jurisdiction, authority_for, statutory_authority and hosts.
+  operations: [regulators_list, regulators_retrieve]
+- name: NewsArticle
+  schemas: [NewsArticleShort, NewsArticleFull]
+  description: An ingested industry news article attributed to a brand and a source host.
+  operations: [news_list, news_retrieve, news_stats_retrieve]
+- name: Job
+  schemas: [JobsList, JobsDetail]
+  description: An ingested iGaming vacancy with company, location, salary, segment and structured requirements.
+  operations: [jobs_list, jobs_retrieve, jobs_stats_retrieve]
+- name: Source
+  schemas: [Source]
+  description: A crawled news host with brand attribution and 30-day article counts.
+  operations: [sources_list, sources_retrieve]
+- name: SlotDemand
+  schemas: [SlotDemand, SlotDemandMarket, SlotCut, SlotCutEnvelope, SlotGlobalCut, SlotGlobalCutEnvelope]
+  description: Search-demand snapshot for one slot — 12-month volume, YoY, trend, sparkline, and a Country x Month matrix.
+  operations: [slots_demand_retrieve]
+- name: ProviderDemand
+  schemas: [ProviderDemand, ProviderDemandMetrics, ProviderDemandMarket, ProviderDemandTopSlot]
+  description: Search-demand snapshot for one provider plus its top slots.
+  operations: [providers_demand_retrieve]
+- name: DemandCut
+  schemas: [CountryCut, CountryCutEnvelope, KeyCut, KeyCutEnvelope, DemandCutEnvelope, DemandWindow, DemandCoverage]
+  description: Market-level demand cut — which slots are searched in a country, ranked by 12-month volume.
+  operations: [demand_list]
+relationships:
+- from: Provider
+  to: Slot
+  type: has_many
+  via: /api/v1/providers/{slug}/slots/ (providers_slots_list); SlotListItem.provider references the provider slug.
+- from: Slot
+  to: Provider
+  type: belongs_to
+  via: SlotListItem.provider
+- from: Provider
+  to: Series
+  type: has_many
+  via: series_list?provider=<slug>; SeriesListItem.provider references the provider slug.
+- from: Series
+  to: Slot
+  type: has_many
+  via: SeriesDetail.slots (SeriesSlotItem[]) plus SeriesDetail.slots_url for the untruncated roster.
+- from: Slot
+  to: Series
+  type: belongs_to
+  via: slots_list?series=<slug>
+- from: Slot
+  to: Theme
+  type: has_many
+  via: slots_list?theme=<slug>; themes are a filterable taxonomy, not embedded as an id array in SlotListItem.
+- from: Slot
+  to: Feature
+  type: has_many
+  via: slots_list?feature=<slug>
+- from: Provider
+  to: NewsArticle
+  type: has_many
+  via: /api/v1/providers/{slug}/news/ (providers_news_list); NewsArticleShort.brand references the brand slug.
+- from: Regulator
+  to: NewsArticle
+  type: has_many
+  via: /api/v1/regulators/{slug}/news/ (regulators_news_list) — same brand model, kind=regulator.
+- from: NewsArticle
+  to: Source
+  type: belongs_to
+  via: NewsArticleShort.host references Source.host
+- from: Source
+  to: NewsArticle
+  type: has_many
+  via: Source.articles_count_30d; news_list?host=<host>
+- from: Provider
+  to: Job
+  type: has_many
+  via: /api/v1/providers/{slug}/jobs/ (providers_jobs_list); JobsList.company references the provider slug where resolved.
+- from: Job
+  to: Provider
+  type: belongs_to
+  via: JobsList.company (resolved brand slug) alongside the raw JobsList.company_name string.
+- from: Provider
+  to: TeamMember
+  type: has_many
+  via: /api/v1/providers/{slug}/team/ (providers_team_list)
+- from: Provider
+  to: ProviderDemand
+  type: has_one
+  via: /api/v1/providers/{slug}/demand/
+- from: Slot
+  to: SlotDemand
+  type: has_one
+  via: /api/v1/slots/{slug}/demand/
+- from: ProviderDemand
+  to: Slot
+  type: has_many
+  via: ProviderDemand.top_slots (ProviderDemandTopSlot[])
+graph_notes:
+- >-
+  Providers and regulators are the SAME underlying entity type in the contract — both are
+  "brands" discriminated by `kind`. That is why regulators_news_list and providers_news_list
+  return identically-shaped payloads and share the summary "News for this brand".
+- >-
+  Demand is a separate computed layer, not a field on the catalog entities. Every demand
+  payload carries computed_at, so a consumer can tell how stale the snapshot is.
+- >-
+  Themes and features are reachable as filters and as directory listings, but a slot's own
+  theme/feature membership is not returned as an id array on SlotListItem — resolve it via
+  the taxonomy endpoints and filtered queries. Aliases are NOT accepted as filter values;
+  look the canonical slug up in list_themes / list_features first.
+counts:
+  schemas: 59
+  entities: 12
+  relationships: 17
+  operations: 29
+subway_render: null
