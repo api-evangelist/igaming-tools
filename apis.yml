@@ -14,6 +14,28 @@ modified: '2026-08-30'
 specificationVersion: '0.21'
 tags:
 - iGaming
+- Online Casino
+- Gambling
+- slot games
+- slot metadata
+- gambling regulation
+- Industry News
+- Job
+- market demand
+- Analytics
+- REST API
+- OpenAPI
+- MCP Server
+- llms-txt
+- LLM Tooling
+- slot RTP
+- paytable data
+- search demand
+- iGaming jobs
+- agent-ready API
+- read-only API
+tags_raw:
+- iGaming
 - online casino
 - gambling
 - slot games
@@ -41,6 +63,22 @@ apis:
   humanURL: https://i-gaming.tools/docs/
   baseURL: https://i-gaming.tools/api/v1
   tags:
+  - iGaming
+  - Online Casino
+  - Gambling
+  - slot games
+  - slot metadata
+  - gambling regulation
+  - Industry News
+  - Job
+  - market demand
+  - Analytics
+  - REST API
+  - OpenAPI
+  - MCP Server
+  - llms-txt
+  - LLM Tooling
+  tags_raw:
   - iGaming
   - online casino
   - gambling
@@ -98,6 +136,22 @@ apis:
   humanURL: https://i-gaming.tools/docs/
   baseURL: https://mcp.i-gaming.tools/mcp
   tags:
+  - iGaming
+  - Online Casino
+  - Gambling
+  - slot games
+  - slot metadata
+  - gambling regulation
+  - Industry News
+  - Job
+  - market demand
+  - Analytics
+  - REST API
+  - OpenAPI
+  - MCP Server
+  - llms-txt
+  - LLM Tooling
+  tags_raw:
   - iGaming
   - online casino
   - gambling
