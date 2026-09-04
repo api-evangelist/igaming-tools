@@ -9,6 +9,21 @@ description: iGaming Tools (i-gaming.tools) is an independent data provider that
   incremental sync with tombstone reconcile) plus a free unauthenticated hosted MCP server exposing 17 read-only tools, and
   two llms.txt files. It is not a casino, operator or betting service.
 url: https://raw.githubusercontent.com/api-evangelist/igaming-tools/refs/heads/main/apis.yml
+accessModel:
+  pricing: free
+  onboarding: self-serve
+  trial: false
+  try_now: true
+  public: false
+  label: Free · Self-serve signup
+  confidence: high
+  source:
+  - plans
+  - authentication
+  - rate-limits
+  - security
+  generated: '2026-09-03'
+  method: derived
 created: '2026-08-30'
 modified: '2026-08-30'
 specificationVersion: '0.21'
