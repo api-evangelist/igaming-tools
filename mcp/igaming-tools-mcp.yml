@@ -29,6 +29,7 @@ server_info:
     - io.modelcontextprotocol/ui
 x-evidence:
   fetched: '2026-08-30'
+  reverified: '2026-09-05'
   url: https://mcp.i-gaming.tools/mcp
   http_status: 200
   content_type: text/event-stream

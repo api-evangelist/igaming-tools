@@ -1,4 +1,4 @@
-generated: '2026-08-30'
+generated: '2026-09-05'
 method: probed
 source: direct HTTP probe of /.well-known/* on every host named in apis.yml
 name: iGaming Tools well-known discovery documents
@@ -37,6 +37,25 @@ hosts:
   - path: /.well-known/agent.json
     status: 404
     file: null
+  - path: /.well-known/ucp.json
+    status: 404
+    file: null
+  - path: /.well-known/acp.json
+    status: 404
+    file: null
+  - path: /.well-known/aauth-resource.json
+    status: 404
+    file: null
+  - path: /.well-known/apis.json
+    status: 404
+    file: null
+  - path: /apis.json
+    status: 404
+    file: null
+  - path: /apis.yml
+    status: 404
+    file: null
+  path_echo_control: passed
 - host: mcp.i-gaming.tools
   note: >-
     Hosted MCP server (Streamable HTTP). Unknown paths return a bare plain-text
@@ -67,8 +86,33 @@ hosts:
   - path: /.well-known/agent.json
     status: 404
     file: null
+  - path: /.well-known/ucp.json
+    status: 404
+    file: null
+  - path: /.well-known/acp.json
+    status: 404
+    file: null
+  - path: /.well-known/aauth-resource.json
+    status: 404
+    file: null
+  - path: /.well-known/apis.json
+    status: 404
+    file: null
+  - path: /apis.json
+    status: 404
+    file: null
+  - path: /apis.yml
+    status: 404
+    file: null
+  path_echo_control: passed
 summary:
   hosts_probed: 2
-  paths_probed: 16
+  paths_probed: 28
   documents_served: 0
-  checked: '2026-08-30'
+  checked: '2026-09-05'
+  note: >-
+    2026-09-05 pass (local-v3) added the AAuth (aauth-resource.json), APIs.json
+    (/.well-known/apis.json, /apis.json, /apis.yml), UCP and ACP probes on both hosts —
+    all 404. A negative control
+    (/.well-known/igaming-tools-negative-control-a91f3c2e.json) also returned 404 on
+    both hosts, confirming neither host path-echoes: these are real absences.
