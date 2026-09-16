@@ -73,82 +73,14 @@ tags_raw:
 - agent-ready API
 - read-only API
 apis:
-- name: iGamingScraper REST API
-  description: 'Token-authenticated REST API providing structured iGaming data: slot providers, slots, news articles,
-    jobs, and regulatory entities. OpenAPI 3.0.3, cursor-paginated, ETag-friendly, with incremental sync support.'
-  humanURL: https://i-gaming.tools/docs/
-  baseURL: https://i-gaming.tools/api/v1
-  tags:
-  - iGaming
-  - Online Casino
-  - Gambling
-  - slot games
-  - slot metadata
-  - gambling regulation
-  - Industry News
-  - Job
-  - market demand
-  - Analytics
-  - REST API
-  - OpenAPI
-  - MCP Server
-  - llms-txt
-  - LLM Tooling
-  tags_raw:
-  - iGaming
-  - online casino
-  - gambling
-  - slot games
-  - slot metadata
-  - gambling regulation
-  - industry news
-  - jobs
-  - market demand
-  - analytics
-  - REST API
-  - OpenAPI
-  - MCP server
-  - llms.txt
-  - LLM tooling
-  properties:
-  - type: OpenAPI
-    url: openapi/igaming-tools-openapi.json
-    description: Verbatim capture 2026-08-30 of the provider OpenAPI 3.0.3. 29 GET operations, 59 schemas, 9 reusable
-      error responses, 6 reusable headers.
-  - type: OpenAPI
-    url: https://i-gaming.tools/docs/openapi.json
-  - type: OpenAPI
-    url: https://i-gaming.tools/api/schema/?format=json
-    description: Byte-identical to /docs/openapi.json; served as application/vnd.oai.openapi+json. YAML at /api/schema/.
-  - type: Overlay
-    url: overlays/igaming-tools-openapi-overlay.yaml
-  - type: Authentication
-    url: authentication/igaming-tools-authentication.yml
-  - type: ErrorCatalog
-    url: errors/igaming-tools-problem-types.yml
-  - type: DataModel
-    url: data-model/igaming-tools-data-model.yml
-  - type: Conventions
-    url: conventions/igaming-tools-conventions.yml
-  - type: RateLimits
-    url: rate-limits/igaming-tools-rate-limits.yml
-  - type: Documentation
-    url: https://i-gaming.tools/docs/
-  - type: APIReference
-    url: https://i-gaming.tools/api/docs/
-    description: Interactive Swagger explorer.
-  - type: GettingStarted
-    url: https://i-gaming.tools/docs/quickstart/
-  - type: LLMsTxt
-    url: https://i-gaming.tools/llms.txt
-  - type: LLMsTxt
-    url: https://i-gaming.tools/docs/llms.txt
 - name: iGaming Tools MCP Server
-  description: 'Free public hosted MCP server (Streamable HTTP, no API key, read-only, not metered) exposing the
-    same iGaming dataset as 17 tools: provider search and profiles, slot search and full spec sheets, series, themes,
-    features, per-slot and per-provider search demand, market demand cuts, regulators, industry news, jobs and news
-    sources. Live handshake on 2026-08-30 returned protocolVersion 2025-06-18 and serverInfo iGaming Tools MCP 3.4.7.
-    Documented for Claude, ChatGPT, Cursor, VS Code/Copilot, Claude Code, Gemini CLI, Codex CLI, Windsurf and Zed.'
+  description: >-
+    Free public hosted MCP server (Streamable HTTP, no API key, read-only, not metered) exposing the same
+    iGaming dataset as 17 tools: provider search and profiles, slot search and full spec sheets, series,
+    themes, features, per-slot and per-provider search demand, market demand cuts, regulators, industry
+    news, jobs and news sources. Live handshake on 2026-08-30 returned protocolVersion 2025-06-18 and
+    serverInfo iGaming Tools MCP 3.4.7. Documented for Claude, ChatGPT, Cursor, VS Code/Copilot, Claude
+    Code, Gemini CLI, Codex CLI, Windsurf and Zed.
   humanURL: https://i-gaming.tools/docs/
   baseURL: https://mcp.i-gaming.tools/mcp
   tags:
@@ -186,17 +118,349 @@ apis:
   properties:
   - type: MCPServer
     url: mcp/igaming-tools-mcp.yml
-    description: Probed manifest with deployment block (mode remote, endpoint https://mcp.i-gaming.tools/mcp, auth
+    description: >-
+      Probed manifest with deployment block (mode remote, endpoint https://mcp.i-gaming.tools/mcp, auth
       none, verified probed) and all 17 tools.
   - type: MCPServer
     url: https://mcp.i-gaming.tools/mcp
-    description: LIVE remote MCP endpoint, 17 read-only tools, no credential. Requires the MCP initialize handshake
-      for a session id — a bare tools/list returns 400, which reads as broken but is correct protocol. Verified
-      2026-08-30.
+    description: >-
+      LIVE remote MCP endpoint, 17 read-only tools, no credential. Requires the MCP initialize handshake
+      for a session id — a bare tools/list returns 400, which reads as broken but is correct protocol.
+      Verified 2026-08-30.
   - type: ToolCrosswalk
     url: mcp/igaming-tools-tool-crosswalk.yml
   - type: Documentation
     url: https://i-gaming.tools/docs/mcp/
+- aid: igaming-tools:igaming-tools-demand-api
+  name: iGaming Tools Demand API
+  description: The demand API from iGaming Tools — 1 operation(s) for demand.
+  humanURL: https://i-gaming.tools/docs/
+  baseURL: https://i-gaming.tools/api/v1
+  tags:
+  - demand
+  properties:
+  - type: OpenAPI
+    url: openapi/igaming-tools-demand-api-openapi.yml
+  - type: Authentication
+    url: authentication/igaming-tools-authentication.yml
+  - type: ErrorCatalog
+    url: errors/igaming-tools-problem-types.yml
+  - type: DataModel
+    url: data-model/igaming-tools-data-model.yml
+  - type: Conventions
+    url: conventions/igaming-tools-conventions.yml
+  - type: RateLimits
+    url: rate-limits/igaming-tools-rate-limits.yml
+  - type: Documentation
+    url: https://i-gaming.tools/docs/
+  - type: APIReference
+    url: https://i-gaming.tools/api/docs/
+  - type: GettingStarted
+    url: https://i-gaming.tools/docs/quickstart/
+  - type: LLMsTxt
+    url: https://i-gaming.tools/llms.txt
+  - type: LLMsTxt
+    url: https://i-gaming.tools/docs/llms.txt
+- aid: igaming-tools:igaming-tools-features-api
+  name: iGaming Tools Features API
+  description: The features API from iGaming Tools — 1 operation(s) for features.
+  humanURL: https://i-gaming.tools/docs/
+  baseURL: https://i-gaming.tools/api/v1
+  tags:
+  - features
+  properties:
+  - type: OpenAPI
+    url: openapi/igaming-tools-features-api-openapi.yml
+  - type: Authentication
+    url: authentication/igaming-tools-authentication.yml
+  - type: ErrorCatalog
+    url: errors/igaming-tools-problem-types.yml
+  - type: DataModel
+    url: data-model/igaming-tools-data-model.yml
+  - type: Conventions
+    url: conventions/igaming-tools-conventions.yml
+  - type: RateLimits
+    url: rate-limits/igaming-tools-rate-limits.yml
+  - type: Documentation
+    url: https://i-gaming.tools/docs/
+  - type: APIReference
+    url: https://i-gaming.tools/api/docs/
+  - type: GettingStarted
+    url: https://i-gaming.tools/docs/quickstart/
+  - type: LLMsTxt
+    url: https://i-gaming.tools/llms.txt
+  - type: LLMsTxt
+    url: https://i-gaming.tools/docs/llms.txt
+- aid: igaming-tools:igaming-tools-jobs-api
+  name: iGaming Tools Jobs API
+  description: The jobs API from iGaming Tools — 3 operation(s) for jobs.
+  humanURL: https://i-gaming.tools/docs/
+  baseURL: https://i-gaming.tools/api/v1
+  tags:
+  - jobs
+  properties:
+  - type: OpenAPI
+    url: openapi/igaming-tools-jobs-api-openapi.yml
+  - type: Authentication
+    url: authentication/igaming-tools-authentication.yml
+  - type: ErrorCatalog
+    url: errors/igaming-tools-problem-types.yml
+  - type: DataModel
+    url: data-model/igaming-tools-data-model.yml
+  - type: Conventions
+    url: conventions/igaming-tools-conventions.yml
+  - type: RateLimits
+    url: rate-limits/igaming-tools-rate-limits.yml
+  - type: Documentation
+    url: https://i-gaming.tools/docs/
+  - type: APIReference
+    url: https://i-gaming.tools/api/docs/
+  - type: GettingStarted
+    url: https://i-gaming.tools/docs/quickstart/
+  - type: LLMsTxt
+    url: https://i-gaming.tools/llms.txt
+  - type: LLMsTxt
+    url: https://i-gaming.tools/docs/llms.txt
+- aid: igaming-tools:igaming-tools-news-api
+  name: iGaming Tools News API
+  description: The news API from iGaming Tools — 3 operation(s) for news.
+  humanURL: https://i-gaming.tools/docs/
+  baseURL: https://i-gaming.tools/api/v1
+  tags:
+  - news
+  properties:
+  - type: OpenAPI
+    url: openapi/igaming-tools-news-api-openapi.yml
+  - type: Authentication
+    url: authentication/igaming-tools-authentication.yml
+  - type: ErrorCatalog
+    url: errors/igaming-tools-problem-types.yml
+  - type: DataModel
+    url: data-model/igaming-tools-data-model.yml
+  - type: Conventions
+    url: conventions/igaming-tools-conventions.yml
+  - type: RateLimits
+    url: rate-limits/igaming-tools-rate-limits.yml
+  - type: Documentation
+    url: https://i-gaming.tools/docs/
+  - type: APIReference
+    url: https://i-gaming.tools/api/docs/
+  - type: GettingStarted
+    url: https://i-gaming.tools/docs/quickstart/
+  - type: LLMsTxt
+    url: https://i-gaming.tools/llms.txt
+  - type: LLMsTxt
+    url: https://i-gaming.tools/docs/llms.txt
+- aid: igaming-tools:igaming-tools-providers-api
+  name: iGaming Tools Providers API
+  description: The providers API from iGaming Tools — 8 operation(s) for providers.
+  humanURL: https://i-gaming.tools/docs/
+  baseURL: https://i-gaming.tools/api/v1
+  tags:
+  - providers
+  properties:
+  - type: OpenAPI
+    url: openapi/igaming-tools-providers-api-openapi.yml
+  - type: Authentication
+    url: authentication/igaming-tools-authentication.yml
+  - type: ErrorCatalog
+    url: errors/igaming-tools-problem-types.yml
+  - type: DataModel
+    url: data-model/igaming-tools-data-model.yml
+  - type: Conventions
+    url: conventions/igaming-tools-conventions.yml
+  - type: RateLimits
+    url: rate-limits/igaming-tools-rate-limits.yml
+  - type: Documentation
+    url: https://i-gaming.tools/docs/
+  - type: APIReference
+    url: https://i-gaming.tools/api/docs/
+  - type: GettingStarted
+    url: https://i-gaming.tools/docs/quickstart/
+  - type: LLMsTxt
+    url: https://i-gaming.tools/llms.txt
+  - type: LLMsTxt
+    url: https://i-gaming.tools/docs/llms.txt
+- aid: igaming-tools:igaming-tools-regulators-api
+  name: iGaming Tools Regulators API
+  description: The regulators API from iGaming Tools — 3 operation(s) for regulators.
+  humanURL: https://i-gaming.tools/docs/
+  baseURL: https://i-gaming.tools/api/v1
+  tags:
+  - regulators
+  properties:
+  - type: OpenAPI
+    url: openapi/igaming-tools-regulators-api-openapi.yml
+  - type: Authentication
+    url: authentication/igaming-tools-authentication.yml
+  - type: ErrorCatalog
+    url: errors/igaming-tools-problem-types.yml
+  - type: DataModel
+    url: data-model/igaming-tools-data-model.yml
+  - type: Conventions
+    url: conventions/igaming-tools-conventions.yml
+  - type: RateLimits
+    url: rate-limits/igaming-tools-rate-limits.yml
+  - type: Documentation
+    url: https://i-gaming.tools/docs/
+  - type: APIReference
+    url: https://i-gaming.tools/api/docs/
+  - type: GettingStarted
+    url: https://i-gaming.tools/docs/quickstart/
+  - type: LLMsTxt
+    url: https://i-gaming.tools/llms.txt
+  - type: LLMsTxt
+    url: https://i-gaming.tools/docs/llms.txt
+- aid: igaming-tools:igaming-tools-series-api
+  name: iGaming Tools Series API
+  description: The series API from iGaming Tools — 2 operation(s) for series.
+  humanURL: https://i-gaming.tools/docs/
+  baseURL: https://i-gaming.tools/api/v1
+  tags:
+  - series
+  properties:
+  - type: OpenAPI
+    url: openapi/igaming-tools-series-api-openapi.yml
+  - type: Authentication
+    url: authentication/igaming-tools-authentication.yml
+  - type: ErrorCatalog
+    url: errors/igaming-tools-problem-types.yml
+  - type: DataModel
+    url: data-model/igaming-tools-data-model.yml
+  - type: Conventions
+    url: conventions/igaming-tools-conventions.yml
+  - type: RateLimits
+    url: rate-limits/igaming-tools-rate-limits.yml
+  - type: Documentation
+    url: https://i-gaming.tools/docs/
+  - type: APIReference
+    url: https://i-gaming.tools/api/docs/
+  - type: GettingStarted
+    url: https://i-gaming.tools/docs/quickstart/
+  - type: LLMsTxt
+    url: https://i-gaming.tools/llms.txt
+  - type: LLMsTxt
+    url: https://i-gaming.tools/docs/llms.txt
+- aid: igaming-tools:igaming-tools-slots-api
+  name: iGaming Tools Slots API
+  description: The slots API from iGaming Tools — 4 operation(s) for slots.
+  humanURL: https://i-gaming.tools/docs/
+  baseURL: https://i-gaming.tools/api/v1
+  tags:
+  - slots
+  properties:
+  - type: OpenAPI
+    url: openapi/igaming-tools-slots-api-openapi.yml
+  - type: Authentication
+    url: authentication/igaming-tools-authentication.yml
+  - type: ErrorCatalog
+    url: errors/igaming-tools-problem-types.yml
+  - type: DataModel
+    url: data-model/igaming-tools-data-model.yml
+  - type: Conventions
+    url: conventions/igaming-tools-conventions.yml
+  - type: RateLimits
+    url: rate-limits/igaming-tools-rate-limits.yml
+  - type: Documentation
+    url: https://i-gaming.tools/docs/
+  - type: APIReference
+    url: https://i-gaming.tools/api/docs/
+  - type: GettingStarted
+    url: https://i-gaming.tools/docs/quickstart/
+  - type: LLMsTxt
+    url: https://i-gaming.tools/llms.txt
+  - type: LLMsTxt
+    url: https://i-gaming.tools/docs/llms.txt
+- aid: igaming-tools:igaming-tools-sources-api
+  name: iGaming Tools Sources API
+  description: The sources API from iGaming Tools — 2 operation(s) for sources.
+  humanURL: https://i-gaming.tools/docs/
+  baseURL: https://i-gaming.tools/api/v1
+  tags:
+  - sources
+  properties:
+  - type: OpenAPI
+    url: openapi/igaming-tools-sources-api-openapi.yml
+  - type: Authentication
+    url: authentication/igaming-tools-authentication.yml
+  - type: ErrorCatalog
+    url: errors/igaming-tools-problem-types.yml
+  - type: DataModel
+    url: data-model/igaming-tools-data-model.yml
+  - type: Conventions
+    url: conventions/igaming-tools-conventions.yml
+  - type: RateLimits
+    url: rate-limits/igaming-tools-rate-limits.yml
+  - type: Documentation
+    url: https://i-gaming.tools/docs/
+  - type: APIReference
+    url: https://i-gaming.tools/api/docs/
+  - type: GettingStarted
+    url: https://i-gaming.tools/docs/quickstart/
+  - type: LLMsTxt
+    url: https://i-gaming.tools/llms.txt
+  - type: LLMsTxt
+    url: https://i-gaming.tools/docs/llms.txt
+- aid: igaming-tools:igaming-tools-stats-api
+  name: iGaming Tools Stats API
+  description: The stats API from iGaming Tools — 1 operation(s) for stats.
+  humanURL: https://i-gaming.tools/docs/
+  baseURL: https://i-gaming.tools/api/v1
+  tags:
+  - stats
+  properties:
+  - type: OpenAPI
+    url: openapi/igaming-tools-stats-api-openapi.yml
+  - type: Authentication
+    url: authentication/igaming-tools-authentication.yml
+  - type: ErrorCatalog
+    url: errors/igaming-tools-problem-types.yml
+  - type: DataModel
+    url: data-model/igaming-tools-data-model.yml
+  - type: Conventions
+    url: conventions/igaming-tools-conventions.yml
+  - type: RateLimits
+    url: rate-limits/igaming-tools-rate-limits.yml
+  - type: Documentation
+    url: https://i-gaming.tools/docs/
+  - type: APIReference
+    url: https://i-gaming.tools/api/docs/
+  - type: GettingStarted
+    url: https://i-gaming.tools/docs/quickstart/
+  - type: LLMsTxt
+    url: https://i-gaming.tools/llms.txt
+  - type: LLMsTxt
+    url: https://i-gaming.tools/docs/llms.txt
+- aid: igaming-tools:igaming-tools-themes-api
+  name: iGaming Tools Themes API
+  description: The themes API from iGaming Tools — 1 operation(s) for themes.
+  humanURL: https://i-gaming.tools/docs/
+  baseURL: https://i-gaming.tools/api/v1
+  tags:
+  - themes
+  properties:
+  - type: OpenAPI
+    url: openapi/igaming-tools-themes-api-openapi.yml
+  - type: Authentication
+    url: authentication/igaming-tools-authentication.yml
+  - type: ErrorCatalog
+    url: errors/igaming-tools-problem-types.yml
+  - type: DataModel
+    url: data-model/igaming-tools-data-model.yml
+  - type: Conventions
+    url: conventions/igaming-tools-conventions.yml
+  - type: RateLimits
+    url: rate-limits/igaming-tools-rate-limits.yml
+  - type: Documentation
+    url: https://i-gaming.tools/docs/
+  - type: APIReference
+    url: https://i-gaming.tools/api/docs/
+  - type: GettingStarted
+    url: https://i-gaming.tools/docs/quickstart/
+  - type: LLMsTxt
+    url: https://i-gaming.tools/llms.txt
+  - type: LLMsTxt
+    url: https://i-gaming.tools/docs/llms.txt
 maintainers:
 - FN: iGaming Tools
   url: https://i-gaming.tools
@@ -207,6 +471,8 @@ generated:
   confidence: 96
   at: '2026-08-30T06:25:46.277Z'
 common:
+- type: Overlay
+  url: overlays/igaming-tools-openapi-overlay.yaml
 - type: Website
   url: https://i-gaming.tools/
 - type: DeveloperPortal
