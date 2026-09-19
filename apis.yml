@@ -137,6 +137,8 @@ apis:
   humanURL: https://i-gaming.tools/docs/
   baseURL: https://i-gaming.tools/api/v1
   tags:
+  - Demand
+  tags_raw:
   - demand
   properties:
   - type: OpenAPI
@@ -167,6 +169,8 @@ apis:
   humanURL: https://i-gaming.tools/docs/
   baseURL: https://i-gaming.tools/api/v1
   tags:
+  - Features
+  tags_raw:
   - features
   properties:
   - type: OpenAPI
@@ -197,6 +201,8 @@ apis:
   humanURL: https://i-gaming.tools/docs/
   baseURL: https://i-gaming.tools/api/v1
   tags:
+  - Job
+  tags_raw:
   - jobs
   properties:
   - type: OpenAPI
@@ -227,6 +233,8 @@ apis:
   humanURL: https://i-gaming.tools/docs/
   baseURL: https://i-gaming.tools/api/v1
   tags:
+  - News
+  tags_raw:
   - news
   properties:
   - type: OpenAPI
@@ -257,6 +265,8 @@ apis:
   humanURL: https://i-gaming.tools/docs/
   baseURL: https://i-gaming.tools/api/v1
   tags:
+  - Providers
+  tags_raw:
   - providers
   properties:
   - type: OpenAPI
@@ -317,6 +327,8 @@ apis:
   humanURL: https://i-gaming.tools/docs/
   baseURL: https://i-gaming.tools/api/v1
   tags:
+  - Series
+  tags_raw:
   - series
   properties:
   - type: OpenAPI
@@ -347,6 +359,8 @@ apis:
   humanURL: https://i-gaming.tools/docs/
   baseURL: https://i-gaming.tools/api/v1
   tags:
+  - Slots
+  tags_raw:
   - slots
   properties:
   - type: OpenAPI
@@ -377,6 +391,8 @@ apis:
   humanURL: https://i-gaming.tools/docs/
   baseURL: https://i-gaming.tools/api/v1
   tags:
+  - Sources
+  tags_raw:
   - sources
   properties:
   - type: OpenAPI
@@ -407,6 +423,8 @@ apis:
   humanURL: https://i-gaming.tools/docs/
   baseURL: https://i-gaming.tools/api/v1
   tags:
+  - Stats
+  tags_raw:
   - stats
   properties:
   - type: OpenAPI
@@ -437,6 +455,8 @@ apis:
   humanURL: https://i-gaming.tools/docs/
   baseURL: https://i-gaming.tools/api/v1
   tags:
+  - Themes
+  tags_raw:
   - themes
   properties:
   - type: OpenAPI
