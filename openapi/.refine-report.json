@@ -1,0 +1,51 @@
+{
+  "provider": "igaming-tools",
+  "sources": [
+    "_original/igaming-tools-openapi.json"
+  ],
+  "outputs": [
+    "igaming-tools-demand-api-openapi.yml",
+    "igaming-tools-features-api-openapi.yml",
+    "igaming-tools-jobs-api-openapi.yml",
+    "igaming-tools-news-api-openapi.yml",
+    "igaming-tools-providers-api-openapi.yml",
+    "igaming-tools-regulators-api-openapi.yml",
+    "igaming-tools-series-api-openapi.yml",
+    "igaming-tools-slots-api-openapi.yml",
+    "igaming-tools-sources-api-openapi.yml",
+    "igaming-tools-stats-api-openapi.yml",
+    "igaming-tools-themes-api-openapi.yml"
+  ],
+  "archived": [],
+  "errors": [],
+  "warnings": [],
+  "notes": [
+    "sourced from openapi/_original/ (1 archived document(s)); previously refined output at the top level was skipped rather than re-split",
+    "igaming-tools-openapi.json: upgraded openapi 3.0.3 -> OpenAPI 3.2.0",
+    "igaming-tools-openapi.json: declared missing tag: demand",
+    "igaming-tools-openapi.json: declared missing tag: features",
+    "igaming-tools-openapi.json: declared missing tag: jobs",
+    "igaming-tools-openapi.json: declared missing tag: news",
+    "igaming-tools-openapi.json: declared missing tag: providers",
+    "igaming-tools-openapi.json: declared missing tag: regulators",
+    "igaming-tools-openapi.json: declared missing tag: series",
+    "igaming-tools-openapi.json: declared missing tag: slots",
+    "igaming-tools-openapi.json: declared missing tag: sources",
+    "igaming-tools-openapi.json: declared missing tag: stats",
+    "igaming-tools-openapi.json: declared missing tag: themes",
+    "apis.yml register: already-registered"
+  ],
+  "skipped": [
+    "igaming-tools-demand-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "igaming-tools-features-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "igaming-tools-jobs-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "igaming-tools-news-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "igaming-tools-providers-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "igaming-tools-regulators-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "igaming-tools-series-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "igaming-tools-slots-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "igaming-tools-sources-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "igaming-tools-stats-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "igaming-tools-themes-api-openapi.yml: previously refined output, superseded by openapi/_original/"
+  ]
+}

@@ -1,0 +1,229 @@
+openapi: 3.2.0
+info:
+  title: iGaming Tools Features API
+  version: 1.0.0
+  description: 'Public REST API for iGaming data: slot providers, slots, news, jobs, sources.'
+  termsOfService: https://i-gaming.tools/terms/
+  contact:
+    name: iGaming Tools support
+    email: support@i-gaming.tools
+    url: https://i-gaming.tools/docs/
+  license:
+    name: Terms of Service
+    url: https://i-gaming.tools/terms/
+servers:
+- url: https://i-gaming.tools
+tags:
+- name: Features
+paths:
+  /api/v1/features/:
+    get:
+      operationId: features_list
+      description: Cursor-paginated directory of slot features (game mechanics) that have at least one public slot. Use ?feature= on GET /api/v1/slots/ to filter by feature. aliases are alternative spellings for matching a user's query to this slug (e.g. 'egypt' -> 'egyptian'). Filter by slug only — aliases are not a second filter key. If next is not null, the directory does not fit in one response — keep paging until next is null before treating the set as complete.
+      summary: List slot features
+      parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+        description: Opaque pagination cursor from a previous response's next/previous link.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 500
+          default: 200
+        description: Number of results per page. Default 200, maximum 500. The default is large enough to return the whole directory in one response; if next is not null, keep paginating with cursor until it is.
+      tags:
+      - Features
+      security:
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaxonomyDirectoryPage'
+              examples:
+                BonusGameDirectoryEntry:
+                  value:
+                    count: 64
+                    next: null
+                    previous: null
+                    results:
+                    - slug: bonus-game
+                      name: Bonus Game
+                      slots_count: 27
+                      aliases:
+                      - bonus round
+                      - mini game
+                  summary: Bonus Game directory entry
+          description: Success.
+          headers:
+            X-Quota-Free-Remaining:
+              $ref: '#/components/headers/XQuotaFreeRemaining'
+            X-Quota-Paid-Balance:
+              $ref: '#/components/headers/XQuotaPaidBalance'
+            X-Quota-Resets-At:
+              $ref: '#/components/headers/XQuotaResetsAt'
+        '401':
+          $ref: '#/components/responses/Err401'
+        '429':
+          $ref: '#/components/responses/Err429'
+        '402':
+          $ref: '#/components/responses/Err402'
+        '400':
+          $ref: '#/components/responses/Err400'
+components:
+  schemas:
+    TaxonomyDirectoryItem:
+      type: object
+      description: Taxonomy directory entry (theme or feature) with alternative spellings.
+      properties:
+        slug:
+          type: string
+        name:
+          type: string
+        slots_count:
+          type: integer
+        aliases:
+          type: array
+          items:
+            type: string
+          description: aliases are alternative spellings for matching a user's query to this slug (e.g. 'egypt' -> 'egyptian'). Filter by slug only — aliases are not a second filter key.
+          readOnly: true
+      required:
+      - aliases
+      - name
+      - slots_count
+      - slug
+    TaxonomyDirectoryPage:
+      type: object
+      description: Cursor-paginated page of a taxonomy directory (themes or features). count is the total number of entries across all pages.
+      properties:
+        count:
+          type: integer
+        next:
+          type:
+          - string
+          - 'null'
+          description: Absolute URL of the next page, or null on the last page.
+        previous:
+          type:
+          - string
+          - 'null'
+          description: Absolute URL of the previous page, or null on the first page.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaxonomyDirectoryItem'
+      required:
+      - count
+      - next
+      - previous
+      - results
+  responses:
+    Err402:
+      description: Payment Required — billing quota exhausted (monthly free tier or paid balance depleted).
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Quota exhausted. Top up or wait until the monthly reset.
+                code: quota_exhausted
+      headers:
+        X-Quota-Free-Remaining:
+          $ref: '#/components/headers/XQuotaFreeRemaining'
+        X-Quota-Paid-Balance:
+          $ref: '#/components/headers/XQuotaPaidBalance'
+        X-Quota-Resets-At:
+          $ref: '#/components/headers/XQuotaResetsAt'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+    Err400:
+      description: Bad Request — invalid filter or parameter value.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Invalid value for parameter "ordering".
+                code: invalid_parameter
+    Err429:
+      description: Too Many Requests — technical per-user rate limit exceeded.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Request was throttled. Try again later.
+                code: throttled
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+    Err401:
+      description: Unauthorized — missing or invalid API token.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Authentication credentials were not provided.
+                code: unauthorized
+  headers:
+    XQuotaFreeRemaining:
+      schema:
+        type: integer
+      description: Remaining monthly free-tier requests for the caller.
+    XQuotaPaidBalance:
+      schema:
+        type: integer
+      description: Remaining paid balance (requests) for the caller.
+    XQuotaResetsAt:
+      schema:
+        type: string
+        format: date-time
+      description: ISO-8601 UTC timestamp of the next monthly quota reset.
+    RetryAfter:
+      schema:
+        type: integer
+      description: Seconds to wait before retrying.
+  securitySchemes:
+    TokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token <hex>. Create a free account and issue your own key at /account/; the key is shown once, at creation. Free tier included, no card required.
+externalDocs:
+  url: https://i-gaming.tools/docs/
+  description: Guides, reference and code examples

@@ -1,0 +1,281 @@
+openapi: 3.2.0
+info:
+  title: iGaming Tools Sources API
+  version: 1.0.0
+  description: 'Public REST API for iGaming data: slot providers, slots, news, jobs, sources.'
+  termsOfService: https://i-gaming.tools/terms/
+  contact:
+    name: iGaming Tools support
+    email: support@i-gaming.tools
+    url: https://i-gaming.tools/docs/
+  license:
+    name: Terms of Service
+    url: https://i-gaming.tools/terms/
+servers:
+- url: https://i-gaming.tools
+tags:
+- name: Sources
+paths:
+  /api/v1/sources/:
+    get:
+      operationId: sources_list
+      description: Cursor-paginated list of active parsing hosts with brand attribution. Ordered by host (FQDN). Includes articles_count_30d (last 30 days) and last_extracted_at.
+      summary: List news sources
+      parameters:
+      - name: cursor
+        required: false
+        in: query
+        description: Opaque pagination cursor from a previous response's next/previous link.
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results per page. Default 20, maximum 100 — same limits as the rest of the public API. An operator-configured limit may lower the maximum.
+        schema:
+          type: integer
+      tags:
+      - Sources
+      security:
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSourceList'
+          description: Success.
+          headers:
+            X-Quota-Free-Remaining:
+              $ref: '#/components/headers/XQuotaFreeRemaining'
+            X-Quota-Paid-Balance:
+              $ref: '#/components/headers/XQuotaPaidBalance'
+            X-Quota-Resets-At:
+              $ref: '#/components/headers/XQuotaResetsAt'
+        '401':
+          $ref: '#/components/responses/Err401'
+        '429':
+          $ref: '#/components/responses/Err429'
+        '402':
+          $ref: '#/components/responses/Err402'
+        '400':
+          $ref: '#/components/responses/Err400'
+  /api/v1/sources/{host}/:
+    get:
+      operationId: sources_retrieve
+      description: Source detail by host FQDN. Same fields as the list endpoint. The host is the full domain, dots included.
+      summary: Get source detail
+      parameters:
+      - in: path
+        name: host
+        schema:
+          type: string
+          pattern: ^[^/]+$
+        required: true
+      tags:
+      - Sources
+      security:
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Source'
+          description: Success.
+          headers:
+            X-Quota-Free-Remaining:
+              $ref: '#/components/headers/XQuotaFreeRemaining'
+            X-Quota-Paid-Balance:
+              $ref: '#/components/headers/XQuotaPaidBalance'
+            X-Quota-Resets-At:
+              $ref: '#/components/headers/XQuotaResetsAt'
+        '401':
+          $ref: '#/components/responses/Err401'
+        '429':
+          $ref: '#/components/responses/Err429'
+        '402':
+          $ref: '#/components/responses/Err402'
+        '404':
+          $ref: '#/components/responses/Err404'
+components:
+  responses:
+    Err404:
+      description: Not Found — resource does not exist or is not yet public.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Not found.
+                code: not_found
+    Err402:
+      description: Payment Required — billing quota exhausted (monthly free tier or paid balance depleted).
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Quota exhausted. Top up or wait until the monthly reset.
+                code: quota_exhausted
+      headers:
+        X-Quota-Free-Remaining:
+          $ref: '#/components/headers/XQuotaFreeRemaining'
+        X-Quota-Paid-Balance:
+          $ref: '#/components/headers/XQuotaPaidBalance'
+        X-Quota-Resets-At:
+          $ref: '#/components/headers/XQuotaResetsAt'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+    Err400:
+      description: Bad Request — invalid filter or parameter value.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Invalid value for parameter "ordering".
+                code: invalid_parameter
+    Err429:
+      description: Too Many Requests — technical per-user rate limit exceeded.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Request was throttled. Try again later.
+                code: throttled
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+    Err401:
+      description: Unauthorized — missing or invalid API token.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Authentication credentials were not provided.
+                code: unauthorized
+  schemas:
+    Source:
+      type: object
+      description: 'A news source: one host, with brand attribution and freshness. host is the full domain; brand is {slug, kind, name} or null; articles_count_30d counts articles published in the last 30 days; last_extracted_at is the most recent successful extraction, or null.'
+      properties:
+        host:
+          type: string
+        brand:
+          type:
+          - object
+          - 'null'
+          properties:
+            slug:
+              type: string
+            kind:
+              type:
+              - string
+              - 'null'
+            name:
+              type: string
+          readOnly: true
+        articles_count_30d:
+          type: integer
+          default: 0
+        last_extracted_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+      required:
+      - brand
+      - host
+      - last_extracted_at
+    PaginatedSourceList:
+      type: object
+      required:
+      - results
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Absolute URL of the next page, or null on the last page.
+        previous:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Absolute URL of the previous page, or null on the first page.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Source'
+  headers:
+    XQuotaFreeRemaining:
+      schema:
+        type: integer
+      description: Remaining monthly free-tier requests for the caller.
+    XQuotaPaidBalance:
+      schema:
+        type: integer
+      description: Remaining paid balance (requests) for the caller.
+    XQuotaResetsAt:
+      schema:
+        type: string
+        format: date-time
+      description: ISO-8601 UTC timestamp of the next monthly quota reset.
+    RetryAfter:
+      schema:
+        type: integer
+      description: Seconds to wait before retrying.
+  securitySchemes:
+    TokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token <hex>. Create a free account and issue your own key at /account/; the key is shown once, at creation. Free tier included, no card required.
+externalDocs:
+  url: https://i-gaming.tools/docs/
+  description: Guides, reference and code examples

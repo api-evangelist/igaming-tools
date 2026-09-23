@@ -1,0 +1,477 @@
+openapi: 3.2.0
+info:
+  title: iGaming Tools News API
+  version: 1.0.0
+  description: 'Public REST API for iGaming data: slot providers, slots, news, jobs, sources.'
+  termsOfService: https://i-gaming.tools/terms/
+  contact:
+    name: iGaming Tools support
+    email: support@i-gaming.tools
+    url: https://i-gaming.tools/docs/
+  license:
+    name: Terms of Service
+    url: https://i-gaming.tools/terms/
+servers:
+- url: https://i-gaming.tools
+tags:
+- name: News
+paths:
+  /api/v1/news/:
+    get:
+      operationId: news_list
+      description: Cursor-paginated list of iGaming news articles ordered by published_at DESC. Does not include body_en — body is only available in the detail endpoint. Filterable by brand, language, host, and date range. With ?updated_since the order switches to (updated_at, id) ASC for forward sync, and only articles CHANGED since that moment are returned — including ones published long ago but ingested or corrected recently. Store the X-Sync-Timestamp header and pass it back on the next run.
+      summary: List news articles
+      parameters:
+      - in: query
+        name: brand_kind
+        schema:
+          type: string
+        description: Brand kind code. Currently one of slot_provider, casino_brand, regulator, other. The set is data-driven, so treat it as open.
+      - in: query
+        name: brand_slug
+        schema:
+          type: string
+        description: Brand slug
+      - name: cursor
+        required: false
+        in: query
+        description: Opaque pagination cursor from a previous response's next/previous link.
+        schema:
+          type: string
+      - in: query
+        name: host
+        schema:
+          type: string
+        description: Host FQDN
+      - in: query
+        name: language
+        schema:
+          type: string
+        description: Language code (ISO 639-1)
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results per page. Default 20, maximum 100 — same limits as the rest of the public API. An operator-configured limit may lower the maximum.
+        schema:
+          type: integer
+      - in: query
+        name: published_after
+        schema:
+          type: string
+          format: date-time
+        description: Published at >= this value (ISO 8601, inclusive).
+      - in: query
+        name: published_before
+        schema:
+          type: string
+          format: date-time
+        description: Published at < this value (ISO 8601, EXCLUSIVE — the named moment is not included).
+      - in: query
+        name: updated_since
+        schema:
+          type: string
+          format: date-time
+        description: ISO-8601 datetime. Returns only records updated at or after this moment.
+      tags:
+      - News
+      security:
+      - TokenAuth: []
+      responses:
+        '200':
+          headers:
+            X-Sync-Timestamp:
+              $ref: '#/components/headers/XSyncTimestamp'
+            X-Quota-Free-Remaining:
+              $ref: '#/components/headers/XQuotaFreeRemaining'
+            X-Quota-Paid-Balance:
+              $ref: '#/components/headers/XQuotaPaidBalance'
+            X-Quota-Resets-At:
+              $ref: '#/components/headers/XQuotaResetsAt'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNewsArticleShortList'
+          description: Success.
+        '401':
+          $ref: '#/components/responses/Err401'
+        '429':
+          $ref: '#/components/responses/Err429'
+        '402':
+          $ref: '#/components/responses/Err402'
+        '400':
+          $ref: '#/components/responses/Err400'
+  /api/v1/news/{id}/:
+    get:
+      operationId: news_retrieve
+      description: 'Full news article by UUID including body_en from content storage. If content storage is unavailable: body_en="", body_unavailable_reason="content_storage_unavailable". If body was not extracted: body_unavailable_reason="extraction_failed".'
+      summary: Get news article detail
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Stable UUID identifier of the article.
+        required: true
+      tags:
+      - News
+      security:
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewsArticleFull'
+          description: Success.
+          headers:
+            X-Quota-Free-Remaining:
+              $ref: '#/components/headers/XQuotaFreeRemaining'
+            X-Quota-Paid-Balance:
+              $ref: '#/components/headers/XQuotaPaidBalance'
+            X-Quota-Resets-At:
+              $ref: '#/components/headers/XQuotaResetsAt'
+        '401':
+          $ref: '#/components/responses/Err401'
+        '429':
+          $ref: '#/components/responses/Err429'
+        '402':
+          $ref: '#/components/responses/Err402'
+        '404':
+          $ref: '#/components/responses/Err404'
+  /api/v1/news/stats/:
+    get:
+      operationId: news_stats_retrieve
+      description: Approximate counts for total-badge display. Returns total_approx, by_status_done, by_language, last_published_at. Free — this endpoint does not count against your quota. Same as /jobs/stats/ and /stats/.
+      summary: News statistics (approximate)
+      tags:
+      - News
+      security:
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_approx:
+                    type: integer
+                    description: ±5% approximate total.
+                  by_status_done:
+                    type: integer
+                  by_language:
+                    type: object
+                    additionalProperties:
+                      type: integer
+                    description: Count per language code.
+                  last_published_at:
+                    type:
+                    - string
+                    - 'null'
+                    format: date-time
+                  computed_at:
+                    type: string
+                    format: date-time
+          description: Success.
+          headers:
+            X-Quota-Free-Remaining:
+              $ref: '#/components/headers/XQuotaFreeRemaining'
+            X-Quota-Paid-Balance:
+              $ref: '#/components/headers/XQuotaPaidBalance'
+            X-Quota-Resets-At:
+              $ref: '#/components/headers/XQuotaResetsAt'
+        '401':
+          $ref: '#/components/responses/Err401'
+        '429':
+          $ref: '#/components/responses/Err429WithQuota'
+components:
+  schemas:
+    NewsArticleShort:
+      type: object
+      description: A news article as it appears in listings. The body is not included here — fetch the detail endpoint for it.
+      properties:
+        id:
+          type: string
+          format: uuid
+        title_en:
+          type: string
+        published_at:
+          type: string
+          format: date-time
+        discovered_at:
+          type: string
+          format: date-time
+        extraction_completed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        language:
+          type: string
+        brand:
+          type:
+          - object
+          - 'null'
+          properties:
+            slug:
+              type: string
+            name:
+              type: string
+            kind:
+              type:
+              - string
+              - 'null'
+          readOnly: true
+        host:
+          type:
+          - string
+          - 'null'
+          readOnly: true
+        url:
+          type: string
+      required:
+      - brand
+      - discovered_at
+      - extraction_completed_at
+      - host
+      - id
+      - language
+      - published_at
+      - title_en
+      - url
+    PaginatedNewsArticleShortList:
+      type: object
+      required:
+      - results
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Absolute URL of the next page, or null on the last page.
+        previous:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Absolute URL of the previous page, or null on the first page.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/NewsArticleShort'
+    NewsArticleFull:
+      type: object
+      description: A news article with its full text. body_en is empty when the text could not be extracted or the content store is temporarily unavailable; body_unavailable_reason says which.
+      properties:
+        id:
+          type: string
+          format: uuid
+        title_en:
+          type: string
+        published_at:
+          type: string
+          format: date-time
+        discovered_at:
+          type: string
+          format: date-time
+        extraction_completed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        language:
+          type: string
+        brand:
+          type:
+          - object
+          - 'null'
+          properties:
+            slug:
+              type: string
+            name:
+              type: string
+            kind:
+              type:
+              - string
+              - 'null'
+          readOnly: true
+        host:
+          type:
+          - string
+          - 'null'
+          readOnly: true
+        url:
+          type: string
+        body_en:
+          type: string
+          default: ''
+        body_unavailable_reason:
+          type: string
+          default: ''
+      required:
+      - brand
+      - discovered_at
+      - extraction_completed_at
+      - host
+      - id
+      - language
+      - published_at
+      - title_en
+      - url
+  responses:
+    Err404:
+      description: Not Found — resource does not exist or is not yet public.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Not found.
+                code: not_found
+    Err402:
+      description: Payment Required — billing quota exhausted (monthly free tier or paid balance depleted).
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Quota exhausted. Top up or wait until the monthly reset.
+                code: quota_exhausted
+      headers:
+        X-Quota-Free-Remaining:
+          $ref: '#/components/headers/XQuotaFreeRemaining'
+        X-Quota-Paid-Balance:
+          $ref: '#/components/headers/XQuotaPaidBalance'
+        X-Quota-Resets-At:
+          $ref: '#/components/headers/XQuotaResetsAt'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+    Err400:
+      description: Bad Request — invalid filter or parameter value.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Invalid value for parameter "ordering".
+                code: invalid_parameter
+    Err429WithQuota:
+      description: Too Many Requests — technical per-user rate limit exceeded.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Request was throttled. Try again later.
+                code: throttled
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Quota-Free-Remaining:
+          $ref: '#/components/headers/XQuotaFreeRemaining'
+        X-Quota-Paid-Balance:
+          $ref: '#/components/headers/XQuotaPaidBalance'
+        X-Quota-Resets-At:
+          $ref: '#/components/headers/XQuotaResetsAt'
+    Err429:
+      description: Too Many Requests — technical per-user rate limit exceeded.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Request was throttled. Try again later.
+                code: throttled
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+    Err401:
+      description: Unauthorized — missing or invalid API token.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Authentication credentials were not provided.
+                code: unauthorized
+  headers:
+    XSyncTimestamp:
+      schema:
+        type: string
+      description: Start-of-request timestamp (ISO-8601 UTC). Returned on 200 and 304 responses of the endpoints that support incremental sync. Store it and pass it back as ?updated_since= on the next sync request — it is the start of this request, not its end, so changes made while you were paginating are not lost.
+    XQuotaFreeRemaining:
+      schema:
+        type: integer
+      description: Remaining monthly free-tier requests for the caller.
+    XQuotaPaidBalance:
+      schema:
+        type: integer
+      description: Remaining paid balance (requests) for the caller.
+    XQuotaResetsAt:
+      schema:
+        type: string
+        format: date-time
+      description: ISO-8601 UTC timestamp of the next monthly quota reset.
+    RetryAfter:
+      schema:
+        type: integer
+      description: Seconds to wait before retrying.
+  securitySchemes:
+    TokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token <hex>. Create a free account and issue your own key at /account/; the key is shown once, at creation. Free tier included, no card required.
+externalDocs:
+  url: https://i-gaming.tools/docs/
+  description: Guides, reference and code examples

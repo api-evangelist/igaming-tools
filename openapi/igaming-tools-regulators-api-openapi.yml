@@ -1,0 +1,543 @@
+openapi: 3.2.0
+info:
+  title: iGaming Tools Regulators API
+  version: 1.0.0
+  description: 'Public REST API for iGaming data: slot providers, slots, news, jobs, sources.'
+  termsOfService: https://i-gaming.tools/terms/
+  contact:
+    name: iGaming Tools support
+    email: support@i-gaming.tools
+    url: https://i-gaming.tools/docs/
+  license:
+    name: Terms of Service
+    url: https://i-gaming.tools/terms/
+servers:
+- url: https://i-gaming.tools
+tags:
+- name: regulators
+paths:
+  /api/v1/regulators/:
+    get:
+      operationId: regulators_list
+      description: Cursor-paginated list of iGaming regulators (UKGC, MGA, GGL, ANJ, etc.). All seeded regulators are public.
+      summary: List regulators
+      parameters:
+      - in: query
+        name: country
+        schema:
+          type: string
+        description: Country (exact, free-text)
+      - name: cursor
+        required: false
+        in: query
+        description: Opaque pagination cursor from a previous response's next/previous link.
+        schema:
+          type: string
+      - in: query
+        name: established_after
+        schema:
+          type: integer
+        description: Established in this year or later (inclusive).
+      - in: query
+        name: established_before
+        schema:
+          type: integer
+        description: Established strictly before this year (EXCLUSIVE — the named year is not included).
+      - in: query
+        name: has_news
+        schema:
+          type: boolean
+        description: Brands with news only
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results per page. Default 20, maximum 100 — same limits as the rest of the public API. An operator-configured limit may lower the maximum.
+        schema:
+          type: integer
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Search by name and aliases
+      tags:
+      - regulators
+      security:
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBrandShortList'
+          description: Success.
+          headers:
+            X-Quota-Free-Remaining:
+              $ref: '#/components/headers/XQuotaFreeRemaining'
+            X-Quota-Paid-Balance:
+              $ref: '#/components/headers/XQuotaPaidBalance'
+            X-Quota-Resets-At:
+              $ref: '#/components/headers/XQuotaResetsAt'
+        '401':
+          $ref: '#/components/responses/Err401'
+        '429':
+          $ref: '#/components/responses/Err429'
+        '402':
+          $ref: '#/components/responses/Err402'
+        '400':
+          $ref: '#/components/responses/Err400'
+  /api/v1/regulators/{slug}/:
+    get:
+      operationId: regulators_retrieve
+      description: Full regulator profile with licensing authority information (jurisdiction, authority_for, statutory_authority, hosts).
+      summary: Get regulator detail
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        description: Regulator slug.
+        required: true
+      tags:
+      - regulators
+      security:
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrandFull'
+          description: Success.
+          headers:
+            X-Quota-Free-Remaining:
+              $ref: '#/components/headers/XQuotaFreeRemaining'
+            X-Quota-Paid-Balance:
+              $ref: '#/components/headers/XQuotaPaidBalance'
+            X-Quota-Resets-At:
+              $ref: '#/components/headers/XQuotaResetsAt'
+        '401':
+          $ref: '#/components/responses/Err401'
+        '429':
+          $ref: '#/components/responses/Err429'
+        '402':
+          $ref: '#/components/responses/Err402'
+        '404':
+          $ref: '#/components/responses/Err404'
+  /api/v1/regulators/{slug}/news/:
+    get:
+      operationId: regulators_news_list
+      description: Cursor-paginated news articles attributed to this brand. Supports ?updated_since for incremental sync and ETag/304. X-Sync-Timestamp response header for next-sync cursor.
+      summary: News for this brand
+      parameters:
+      - in: header
+        name: If-None-Match
+        schema:
+          type: string
+        description: Opaque ETag value from a previous response to this same endpoint. When it matches the current ETag, the server returns 304 Not Modified with no body instead of re-sending the full payload.
+      - name: cursor
+        required: false
+        in: query
+        description: Opaque pagination cursor from a previous response's next/previous link.
+        schema:
+          type: string
+      - in: query
+        name: host
+        schema:
+          type: string
+        description: Host FQDN
+      - in: query
+        name: language
+        schema:
+          type: string
+        description: Language code (ISO 639-1)
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results per page. Default 20, maximum 100 — same limits as the rest of the public API. An operator-configured limit may lower the maximum.
+        schema:
+          type: integer
+      - in: query
+        name: published_after
+        schema:
+          type: string
+          format: date-time
+        description: Published at >= this value (ISO 8601, inclusive).
+      - in: query
+        name: published_before
+        schema:
+          type: string
+          format: date-time
+        description: Published at < this value (ISO 8601, EXCLUSIVE — the named moment is not included).
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: updated_since
+        schema:
+          type: string
+          format: date-time
+        description: 'DEPRECATED on brand-scoped endpoints. Here it filters by publication date, not by when the record last changed, so a delta silently omits items edited after publication — an article corrected long after it was published, or a vacancy that has since closed. Use the root listing with ?brand_slug= instead: GET /api/v1/news/?brand_slug=<slug>&updated_since=… or GET /api/v1/jobs/?brand_slug=<slug>&updated_since=…&include_closed=true, both of which filter and order by the last change. This parameter keeps its current behaviour so that traversals already in progress are not invalidated.'
+        deprecated: true
+      tags:
+      - regulators
+      security:
+      - TokenAuth: []
+      responses:
+        '200':
+          headers:
+            X-Sync-Timestamp:
+              $ref: '#/components/headers/XSyncTimestamp'
+            ETag:
+              $ref: '#/components/headers/ETag'
+            X-Quota-Free-Remaining:
+              $ref: '#/components/headers/XQuotaFreeRemaining'
+            X-Quota-Paid-Balance:
+              $ref: '#/components/headers/XQuotaPaidBalance'
+            X-Quota-Resets-At:
+              $ref: '#/components/headers/XQuotaResetsAt'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNewsArticleShortList'
+          description: Success.
+        '304':
+          headers:
+            X-Sync-Timestamp:
+              $ref: '#/components/headers/XSyncTimestamp'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          description: Not Modified — the ETag in If-None-Match matched the current value. No body.
+        '401':
+          $ref: '#/components/responses/Err401'
+        '429':
+          $ref: '#/components/responses/Err429'
+        '402':
+          $ref: '#/components/responses/Err402'
+        '400':
+          $ref: '#/components/responses/Err400'
+        '404':
+          $ref: '#/components/responses/Err404'
+components:
+  schemas:
+    NewsArticleShort:
+      type: object
+      description: A news article as it appears in listings. The body is not included here — fetch the detail endpoint for it.
+      properties:
+        id:
+          type: string
+          format: uuid
+        title_en:
+          type: string
+        published_at:
+          type: string
+          format: date-time
+        discovered_at:
+          type: string
+          format: date-time
+        extraction_completed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        language:
+          type: string
+        brand:
+          type:
+          - object
+          - 'null'
+          properties:
+            slug:
+              type: string
+            name:
+              type: string
+            kind:
+              type:
+              - string
+              - 'null'
+          readOnly: true
+        host:
+          type:
+          - string
+          - 'null'
+          readOnly: true
+        url:
+          type: string
+      required:
+      - brand
+      - discovered_at
+      - extraction_completed_at
+      - host
+      - id
+      - language
+      - published_at
+      - title_en
+      - url
+    PaginatedBrandShortList:
+      type: object
+      required:
+      - results
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Absolute URL of the next page, or null on the last page.
+        previous:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Absolute URL of the previous page, or null on the first page.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BrandShort'
+    BrandShort:
+      type: object
+      description: 'Compact brand entry for the provider and regulator listings: slug, kind, name, aliases, hosts_count, news_count. Structured profile fields are in the detail endpoint, not here.'
+      properties:
+        slug:
+          type: string
+        kind:
+          type:
+          - string
+          - 'null'
+          readOnly: true
+        name:
+          type: string
+        aliases:
+          type: array
+          items:
+            type: string
+        hosts_count:
+          type: integer
+          default: 0
+        news_count:
+          type: integer
+          description: Attributed news article count.
+          readOnly: true
+      required:
+      - aliases
+      - kind
+      - name
+      - news_count
+      - slug
+    PaginatedNewsArticleShortList:
+      type: object
+      required:
+      - results
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Absolute URL of the next page, or null on the last page.
+        previous:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Absolute URL of the previous page, or null on the first page.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/NewsArticleShort'
+    BrandFull:
+      type: object
+      description: 'Full brand profile: everything from the listing entry plus the structured fields — hosts, country, jurisdiction, established, and the regulator-specific authority_for / statutory_authority.'
+      properties:
+        slug:
+          type: string
+        kind:
+          type:
+          - string
+          - 'null'
+          readOnly: true
+        name:
+          type: string
+        aliases:
+          type: array
+          items:
+            type: string
+        hosts_count:
+          type: integer
+          default: 0
+        news_count:
+          type: integer
+          description: Attributed news article count.
+          readOnly: true
+        hosts:
+          type: array
+          items:
+            type: object
+            properties:
+              host:
+                type: string
+              display_name:
+                type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+        country:
+          type: string
+          default: ''
+        jurisdiction:
+          type: string
+          default: ''
+        established:
+          type:
+          - integer
+          - 'null'
+        authority_for:
+          type: string
+          default: ''
+        statutory_authority:
+          type: string
+          default: ''
+      required:
+      - aliases
+      - created_at
+      - hosts
+      - kind
+      - name
+      - news_count
+      - slug
+  responses:
+    Err404:
+      description: Not Found — resource does not exist or is not yet public.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Not found.
+                code: not_found
+    Err402:
+      description: Payment Required — billing quota exhausted (monthly free tier or paid balance depleted).
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Quota exhausted. Top up or wait until the monthly reset.
+                code: quota_exhausted
+      headers:
+        X-Quota-Free-Remaining:
+          $ref: '#/components/headers/XQuotaFreeRemaining'
+        X-Quota-Paid-Balance:
+          $ref: '#/components/headers/XQuotaPaidBalance'
+        X-Quota-Resets-At:
+          $ref: '#/components/headers/XQuotaResetsAt'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+    Err400:
+      description: Bad Request — invalid filter or parameter value.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Invalid value for parameter "ordering".
+                code: invalid_parameter
+    Err429:
+      description: Too Many Requests — technical per-user rate limit exceeded.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Request was throttled. Try again later.
+                code: throttled
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+    Err401:
+      description: Unauthorized — missing or invalid API token.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Authentication credentials were not provided.
+                code: unauthorized
+  headers:
+    ETag:
+      schema:
+        type: string
+      description: Opaque validator for conditional requests. Pass it back via If-None-Match on the next request to this endpoint to receive 304 when nothing changed.
+    XSyncTimestamp:
+      schema:
+        type: string
+      description: Start-of-request timestamp (ISO-8601 UTC). Returned on 200 and 304 responses of the endpoints that support incremental sync. Store it and pass it back as ?updated_since= on the next sync request — it is the start of this request, not its end, so changes made while you were paginating are not lost.
+    XQuotaFreeRemaining:
+      schema:
+        type: integer
+      description: Remaining monthly free-tier requests for the caller.
+    XQuotaPaidBalance:
+      schema:
+        type: integer
+      description: Remaining paid balance (requests) for the caller.
+    XQuotaResetsAt:
+      schema:
+        type: string
+        format: date-time
+      description: ISO-8601 UTC timestamp of the next monthly quota reset.
+    RetryAfter:
+      schema:
+        type: integer
+      description: Seconds to wait before retrying.
+  securitySchemes:
+    TokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token <hex>. Create a free account and issue your own key at /account/; the key is shown once, at creation. Free tier included, no card required.
+externalDocs:
+  url: https://i-gaming.tools/docs/
+  description: Guides, reference and code examples

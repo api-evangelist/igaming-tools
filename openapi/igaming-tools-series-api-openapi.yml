@@ -1,0 +1,560 @@
+openapi: 3.2.0
+info:
+  title: iGaming Tools Series API
+  version: 1.0.0
+  description: 'Public REST API for iGaming data: slot providers, slots, news, jobs, sources.'
+  termsOfService: https://i-gaming.tools/terms/
+  contact:
+    name: iGaming Tools support
+    email: support@i-gaming.tools
+    url: https://i-gaming.tools/docs/
+  license:
+    name: Terms of Service
+    url: https://i-gaming.tools/terms/
+servers:
+- url: https://i-gaming.tools
+tags:
+- name: Series
+paths:
+  /api/v1/series/:
+    get:
+      operationId: series_list
+      description: Cursor-paginated directory of slot series (franchises) that have at least one public slot. Use ?series= on GET /api/v1/slots/ to list the games in a series. aliases are alternative spellings for matching a user's query to a slug — not a second filter key; filter by slug only. An unknown ?provider= slug returns an empty page, not a 400. If next is not null, the directory does not fit in one response — keep paging until next is null before treating the set as complete.
+      summary: List slot series (franchises)
+      parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+        description: Opaque pagination cursor from a previous response's next/previous link.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 500
+          default: 200
+        description: Number of results per page. Default 200, maximum 500. The default is large enough to return the whole directory in one response; if next is not null, keep paginating with cursor until it is.
+      - in: query
+        name: provider
+        schema:
+          type: string
+        description: Provider slug (exact match).
+      tags:
+      - Series
+      security:
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeriesDirectoryPage'
+              examples:
+                SeriesDirectoryPage:
+                  value:
+                    count: 61
+                    next: null
+                    previous: null
+                    results:
+                    - slug: big-bass
+                      name: Big Bass
+                      aliases: []
+                      provider:
+                        slug: pragmatic-play
+                        name: Pragmatic Play
+                      slots_count: 33
+                      years:
+                        from: 2020
+                        to: 2026
+                      rtp:
+                        min: '96.07'
+                        max: '96.52'
+                      max_win:
+                        min: 2100
+                        max: 25000
+                  summary: Series directory page
+          description: Success.
+          headers:
+            X-Quota-Free-Remaining:
+              $ref: '#/components/headers/XQuotaFreeRemaining'
+            X-Quota-Paid-Balance:
+              $ref: '#/components/headers/XQuotaPaidBalance'
+            X-Quota-Resets-At:
+              $ref: '#/components/headers/XQuotaResetsAt'
+        '401':
+          $ref: '#/components/responses/Err401'
+        '429':
+          $ref: '#/components/responses/Err429'
+        '402':
+          $ref: '#/components/responses/Err402'
+        '400':
+          $ref: '#/components/responses/Err400'
+  /api/v1/series/{slug}/:
+    get:
+      operationId: series_retrieve
+      description: 'Family-wide summary for one series: catalogue aggregates, distributions (volatility / has_bonus_buy / game_category) and a short roster ordered newest release first. For the full roster with every slot field and catalogue filter, use GET /api/v1/slots/?series= — slots_url points there directly. Distribution keys include ''unknown'' (has_bonus_buy / game_category, not evaluated) and ''null'' (volatility, not set); values in each distribution always sum to slots_count. 404 both when the slug does not exist and when the series has no public slot.'
+      summary: Get series (franchise) family summary
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        description: URL-friendly unique identifier of the series.
+        required: true
+      tags:
+      - Series
+      security:
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeriesDetail'
+              examples:
+                SeriesFamilySummary:
+                  value:
+                    slug: big-bass
+                    name: Big Bass
+                    provider:
+                      slug: pragmatic-play
+                      name: Pragmatic Play
+                    slots_count: 33
+                    years:
+                      from: 2020
+                      to: 2026
+                    rtp:
+                      min: '96.07'
+                      max: '96.52'
+                      spread: '0.45'
+                    max_win:
+                      min: 2100
+                      max: 25000
+                    volatility:
+                      high: 31
+                      medium: 1
+                      low: 1
+                    has_bonus_buy:
+                      'yes': 32
+                      'no': 1
+                    game_category:
+                      video_slot: 33
+                    slots_url: https://i-gaming.tools/api/v1/slots/?series=big-bass
+                    slots_truncated: false
+                    slots:
+                    - slug: big-bass-blast-b7
+                      name: Big Bass Blast
+                      released: '2026-07-06'
+                      rtp: '96.50'
+                      max_win: 5000
+                      demo_url: https://demo.i-gaming.tools/iframe/big-bass-blast-b7/
+                  summary: Series family summary
+          description: Success.
+          headers:
+            X-Quota-Free-Remaining:
+              $ref: '#/components/headers/XQuotaFreeRemaining'
+            X-Quota-Paid-Balance:
+              $ref: '#/components/headers/XQuotaPaidBalance'
+            X-Quota-Resets-At:
+              $ref: '#/components/headers/XQuotaResetsAt'
+        '401':
+          $ref: '#/components/responses/Err401'
+        '429':
+          $ref: '#/components/responses/Err429'
+        '402':
+          $ref: '#/components/responses/Err402'
+        '404':
+          $ref: '#/components/responses/Err404'
+components:
+  responses:
+    Err404:
+      description: Not Found — resource does not exist or is not yet public.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Not found.
+                code: not_found
+    Err402:
+      description: Payment Required — billing quota exhausted (monthly free tier or paid balance depleted).
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Quota exhausted. Top up or wait until the monthly reset.
+                code: quota_exhausted
+      headers:
+        X-Quota-Free-Remaining:
+          $ref: '#/components/headers/XQuotaFreeRemaining'
+        X-Quota-Paid-Balance:
+          $ref: '#/components/headers/XQuotaPaidBalance'
+        X-Quota-Resets-At:
+          $ref: '#/components/headers/XQuotaResetsAt'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+    Err400:
+      description: Bad Request — invalid filter or parameter value.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Invalid value for parameter "ordering".
+                code: invalid_parameter
+    Err401:
+      description: Unauthorized — missing or invalid API token.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Authentication credentials were not provided.
+                code: unauthorized
+    Err429:
+      description: Too Many Requests — technical per-user rate limit exceeded.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Request was throttled. Try again later.
+                code: throttled
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+  headers:
+    XQuotaFreeRemaining:
+      schema:
+        type: integer
+      description: Remaining monthly free-tier requests for the caller.
+    XQuotaPaidBalance:
+      schema:
+        type: integer
+      description: Remaining paid balance (requests) for the caller.
+    XQuotaResetsAt:
+      schema:
+        type: string
+        format: date-time
+      description: ISO-8601 UTC timestamp of the next monthly quota reset.
+    RetryAfter:
+      schema:
+        type: integer
+      description: Seconds to wait before retrying.
+  schemas:
+    SeriesListItem:
+      type: object
+      description: Slot series (franchise) directory entry with public-catalogue aggregates.
+      properties:
+        slug:
+          type: string
+        name:
+          type: string
+        aliases:
+          type: array
+          items:
+            type: string
+          description: 'Alternative spellings for matching a user''s query to this series'' slug. Filter by slug: an alias is not accepted as a filter value.'
+          readOnly: true
+        provider:
+          type: object
+          description: The provider that owns this series.
+          properties:
+            slug:
+              type: string
+            name:
+              type: string
+          required:
+          - slug
+          - name
+          readOnly: true
+        slots_count:
+          type: integer
+        years:
+          type: object
+          description: Release-year span of the public slots in this series.
+          properties:
+            from:
+              type:
+              - integer
+              - 'null'
+            to:
+              type:
+              - integer
+              - 'null'
+          required:
+          - from
+          - to
+          readOnly: true
+        rtp:
+          type: object
+          description: RTP range (percent, as decimal string) across every public game in this series; null when no game in the series has a value. The range covers games of every category, not only video slots — a few series mix a scratch card in, and one such game can widen it a lot. Read game_category alongside this field before treating the range as a slot figure.
+          properties:
+            min:
+              type:
+              - string
+              - 'null'
+            max:
+              type:
+              - string
+              - 'null'
+          required:
+          - min
+          - max
+          readOnly: true
+        max_win:
+          type: object
+          description: Max-win range (multiplier of stake) across the public slots in this series. null when no slot in the series has a value.
+          properties:
+            min:
+              type:
+              - integer
+              - 'null'
+            max:
+              type:
+              - integer
+              - 'null'
+          required:
+          - min
+          - max
+          readOnly: true
+      required:
+      - aliases
+      - max_win
+      - name
+      - provider
+      - rtp
+      - slots_count
+      - slug
+      - years
+    SeriesDirectoryPage:
+      type: object
+      description: Cursor-paginated page of the series directory. count is the total number of series across all pages.
+      properties:
+        count:
+          type: integer
+        next:
+          type:
+          - string
+          - 'null'
+          description: Absolute URL of the next page, or null on the last page.
+        previous:
+          type:
+          - string
+          - 'null'
+          description: Absolute URL of the previous page, or null on the first page.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SeriesListItem'
+      required:
+      - count
+      - next
+      - previous
+      - results
+    SeriesSlotItem:
+      type: object
+      description: Short roster entry inside a series family summary.
+      properties:
+        slug:
+          type: string
+        name:
+          type: string
+        released:
+          type:
+          - string
+          - 'null'
+          readOnly: true
+        rtp:
+          type:
+          - string
+          - 'null'
+          readOnly: true
+        max_win:
+          type:
+          - integer
+          - 'null'
+        demo_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Demo-embed URL (same format as detail assets.demo.embed_url) or null.
+          readOnly: true
+      required:
+      - demo_url
+      - max_win
+      - name
+      - released
+      - rtp
+      - slug
+    SeriesDetail:
+      type: object
+      description: 'Family-wide summary for one series: catalogue aggregates, distributions and a short roster.'
+      properties:
+        slug:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        provider:
+          type: object
+          description: The provider that owns this series.
+          properties:
+            slug:
+              type: string
+            name:
+              type: string
+          required:
+          - slug
+          - name
+          readOnly: true
+        slots_count:
+          type: integer
+          readOnly: true
+        years:
+          type: object
+          description: Release-year span of the public slots in this series.
+          properties:
+            from:
+              type:
+              - integer
+              - 'null'
+            to:
+              type:
+              - integer
+              - 'null'
+          required:
+          - from
+          - to
+          readOnly: true
+        rtp:
+          type: object
+          description: RTP range across every public game in this series, plus spread (max - min, as decimal string; null when either bound is null). The range covers games of every category, not only video slots — a few series mix a scratch card in, and one such game can widen the range by tens of points. Read game_category alongside this field before treating the range as a slot figure.
+          properties:
+            min:
+              type:
+              - string
+              - 'null'
+            max:
+              type:
+              - string
+              - 'null'
+            spread:
+              type:
+              - string
+              - 'null'
+          required:
+          - min
+          - max
+          - spread
+          readOnly: true
+        max_win:
+          type: object
+          description: Max-win range (multiplier of stake) across the public slots in this series. null when no slot in the series has a value.
+          properties:
+            min:
+              type:
+              - integer
+              - 'null'
+            max:
+              type:
+              - integer
+              - 'null'
+          required:
+          - min
+          - max
+          readOnly: true
+        volatility:
+          type: object
+          additionalProperties:
+            type: integer
+          description: Count of public slots in this series by volatility. Keys are the volatility enum values, plus 'null' for slots where volatility is not set. Values always sum to slots_count.
+          readOnly: true
+        has_bonus_buy:
+          type: object
+          additionalProperties:
+            type: integer
+          description: Count of public slots in this series by has_bonus_buy. Keys are 'yes', 'no' and 'unknown' (not evaluated). Values always sum to slots_count.
+          readOnly: true
+        game_category:
+          type: object
+          additionalProperties:
+            type: integer
+          description: Count of public slots in this series by game_category. 'unknown' means the category was not classified yet. A series mixing categories (e.g. a video slot spin-off with a scratch-card entry) shows more than one key here. Values always sum to slots_count.
+          readOnly: true
+        slots_url:
+          type: string
+          format: uri
+          description: GET /api/v1/slots/?series=<slug> — the full roster with all slot fields and every catalogue filter. slots[] below is a short preview, not the full roster.
+          readOnly: true
+        slots_truncated:
+          type: boolean
+          readOnly: true
+        slots:
+          type: array
+          items:
+            $ref: '#/components/schemas/SeriesSlotItem'
+          readOnly: true
+          description: Short roster, ordered newest release first (slots with no release date last), then by name. Truncated at 100 entries — see slots_truncated and slots_url for the full set.
+      required:
+      - game_category
+      - has_bonus_buy
+      - max_win
+      - name
+      - provider
+      - rtp
+      - slots
+      - slots_count
+      - slots_truncated
+      - slots_url
+      - slug
+      - volatility
+      - years
+  securitySchemes:
+    TokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token <hex>. Create a free account and issue your own key at /account/; the key is shown once, at creation. Free tier included, no card required.
+externalDocs:
+  url: https://i-gaming.tools/docs/
+  description: Guides, reference and code examples

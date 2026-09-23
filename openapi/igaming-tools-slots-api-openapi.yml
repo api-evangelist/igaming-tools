@@ -1,0 +1,1504 @@
+openapi: 3.2.0
+info:
+  title: iGaming Tools Slots API
+  version: 1.0.0
+  description: 'Public REST API for iGaming data: slot providers, slots, news, jobs, sources.'
+  termsOfService: https://i-gaming.tools/terms/
+  contact:
+    name: iGaming Tools support
+    email: support@i-gaming.tools
+    url: https://i-gaming.tools/docs/
+  license:
+    name: Terms of Service
+    url: https://i-gaming.tools/terms/
+servers:
+- url: https://i-gaming.tools
+tags:
+- name: Slots
+paths:
+  /api/v1/slots/:
+    get:
+      operationId: slots_list
+      description: 'Cursor-paginated list of published slots. Default order: -created_at. With ?updated_since: order switches to (updated_at, id) ASC for forward-sync. With ?ordering=-release_date|release_date: order switches to release-date mode. With ?ordering=-captured_at|captured_at: order switches to capture-date mode (matches the public listing default order). Use /slots/ids/ for tombstone reconcile (removed slots do not appear in deltas). ETag/304 support via If-None-Match.'
+      summary: List public slots
+      parameters:
+      - in: header
+        name: If-None-Match
+        schema:
+          type: string
+        description: Opaque ETag value from a previous response to this same endpoint. When it matches the current ETag, the server returns 304 Not Modified with no body instead of re-sending the full payload.
+      - name: cursor
+        required: false
+        in: query
+        description: Opaque pagination cursor from a previous response's next/previous link.
+        schema:
+          type: string
+      - in: query
+        name: feature
+        schema:
+          type: string
+        description: Feature slug (exact match). A slot may carry several features.
+      - in: query
+        name: game_category
+        schema:
+          type: string
+          enum:
+          - crash
+          - instant_win
+          - live
+          - other
+          - scratch
+          - table
+          - unknown
+          - video_slot
+        description: Game category, exact match. 400 on any value outside the enum. Also filters GET /api/v1/demand/, where it doubles as a cut axis (?by=game_category).
+      - in: query
+        name: has_bonus_buy
+        schema:
+          type: string
+        description: '''true'' or ''false''. Any other value returns 400.'
+      - in: query
+        name: jackpot_type
+        schema:
+          type: string
+          enum:
+          - fixed
+          - none
+          - pooled
+          - progressive
+          - unknown
+        description: Jackpot type (none/fixed/progressive/pooled/unknown)
+      - in: query
+        name: max_win_max
+        schema:
+          type: integer
+        description: max_win <= this value (multiplier of stake, positive integer). Also filters GET /api/v1/demand/ — same catalogue filter.
+      - in: query
+        name: max_win_min
+        schema:
+          type: integer
+        description: max_win >= this value (multiplier of stake, positive integer). Also filters GET /api/v1/demand/ — same catalogue filter.
+      - in: query
+        name: mechanic
+        schema:
+          type: string
+          enum:
+          - cluster
+          - lines
+          - megaways
+          - scatter_pays
+          - variable_ways
+          - ways
+        description: Bet mechanic (lines/ways/cluster/megaways/scatter_pays)
+      - in: query
+        name: ordering
+        schema:
+          type: string
+          enum:
+          - -captured_at
+          - -release_date
+          - captured_at
+          - release_date
+        description: 'Whitelist: ''-release_date'' (newest first) or ''release_date'' (oldest first). Slots with release_date IS NULL sort to the end for ''-release_date'' and to the start for ''release_date''. ''-captured_at'' (most recently captured from a live demo first) or ''captured_at'' (oldest/never-captured first) — matches the public listing''s default order. Any other value → 400. Ignored when ?updated_since is present (sync order wins). Note on backward paging: cursor position is derived from the sort field alone, so walking back with `previous` through the trailing block of items that share the same sort value (those with no release date, or never captured) can skip entries. Forward paging with `next` is always complete, and neither ?updated_since sync nor the /ids/ reconcile is affected. Walk forward when you need the full set.'
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results per page. Default 20, maximum 100 — same limits as the rest of the public API. An operator-configured limit may lower the maximum.
+        schema:
+          type: integer
+      - in: query
+        name: provider
+        schema:
+          type: string
+        description: Provider slug (exact match).
+      - in: query
+        name: released_after
+        schema:
+          type: string
+          format: date
+        description: ISO date (YYYY-MM-DD). release_date >= this value. Slots with release_date IS NULL are excluded. 400 on invalid format.
+      - in: query
+        name: released_before
+        schema:
+          type: string
+          format: date
+        description: ISO date (YYYY-MM-DD). release_date <= this value — INCLUSIVE, the named day is part of the range. Note that ?published_before, ?posted_before and ?established_before on other endpoints are EXCLUSIVE. Slots with release_date IS NULL are excluded. 400 on invalid format.
+      - in: query
+        name: rtp_max
+        schema:
+          type: number
+          format: double
+        description: rtp_default <= this value (percent, decimal, e.g. 96.5). Also filters GET /api/v1/demand/ — same catalogue filter.
+      - in: query
+        name: rtp_min
+        schema:
+          type: number
+          format: double
+        description: rtp_default >= this value (percent, decimal, e.g. 96.5). Also filters GET /api/v1/demand/ — same catalogue filter.
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Case-insensitive substring search over slot name + aliases. Empty/whitespace-only value is a no-op (does not narrow results). Soft-clipped to 100 characters (not a 400).
+      - in: query
+        name: series
+        schema:
+          type: string
+        description: Series slug (exact match). A slot belongs to at most one series.
+      - in: query
+        name: theme
+        schema:
+          type: string
+        description: Theme slug (exact match). A slot may carry several themes.
+      - in: query
+        name: updated_since
+        schema:
+          type: string
+          format: date-time
+        description: 'ISO-8601 datetime. Returns only slots whose content changed at or after this moment. When present, results are ordered by (updated_at, id) ASC — forward through time. Without this param the default order (-created_at, -id) is preserved. 400 on invalid format. Known limitation: cross-object renames (provider/studio/series name changes) do NOT appear in this delta — use /slots/ids/ for tombstone reconcile.'
+      - in: query
+        name: volatility
+        schema:
+          type: string
+          enum:
+          - high
+          - low
+          - med_high
+          - med_low
+          - medium
+          - very_high
+        description: Volatility (low/med_low/medium/med_high/high/very_high)
+      tags:
+      - Slots
+      security:
+      - TokenAuth: []
+      responses:
+        '200':
+          headers:
+            X-Sync-Timestamp:
+              $ref: '#/components/headers/XSyncTimestamp'
+            ETag:
+              $ref: '#/components/headers/ETag'
+            X-Quota-Free-Remaining:
+              $ref: '#/components/headers/XQuotaFreeRemaining'
+            X-Quota-Paid-Balance:
+              $ref: '#/components/headers/XQuotaPaidBalance'
+            X-Quota-Resets-At:
+              $ref: '#/components/headers/XQuotaResetsAt'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSlotListItemList'
+              examples:
+                IncrementalSyncWithUpdatedSince:
+                  value:
+                    next: https://i-gaming.tools/api/v1/slots/?cursor=cD00ODY%3D
+                    previous: https://i-gaming.tools/api/v1/slots/?cursor=cj0xJnA9NDg3
+                    results:
+                    - slug: example-slot-title
+                      name: Example Slot Title
+                      provider:
+                        slug: example-provider
+                        name: Example Provider
+                      game_category: video_slot
+                      game_subtype: null
+                      rtp_default: '96.50'
+                      volatility: high
+                      max_win: 5000
+                      mechanic: ways
+                      mechanic_value: 243
+                      release_date: '2026-01-15'
+                      release_date_precision: day
+                      thumbnail_url: https://cdn.i-gaming.tools/slots/example-slot-title.webp
+                      thumbnail:
+                        url: https://cdn.i-gaming.tools/slots/example-slot-title.webp
+                        key: slots/example-slot-title.webp
+                        version: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+                      volume_12m: 12000
+                      trend: growing
+                      demo_url: null
+                      updated_at: '2026-08-01T09:30:00Z'
+                  summary: Incremental sync with updated_since
+                  description: Pass X-Sync-Timestamp from a previous response as ?updated_since= to receive only slots modified since that moment.
+          description: Success.
+        '304':
+          headers:
+            X-Sync-Timestamp:
+              $ref: '#/components/headers/XSyncTimestamp'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          description: Not Modified — the ETag in If-None-Match matched the current value. No body.
+        '401':
+          $ref: '#/components/responses/Err401'
+        '429':
+          $ref: '#/components/responses/Err429'
+        '402':
+          $ref: '#/components/responses/Err402'
+        '400':
+          $ref: '#/components/responses/Err400'
+  /api/v1/slots/{slug}/:
+    get:
+      operationId: slots_retrieve
+      description: 'Full slot profile: data (RTP/volatility/layout/mechanics), spec_sheet (symbols/modes/palette/accessibility), assets (screenshots/icon). ETag/304: pass If-None-Match to skip the heavy response on unchanged content.'
+      summary: Get slot detail
+      parameters:
+      - in: header
+        name: If-None-Match
+        schema:
+          type: string
+        description: Opaque ETag value from a previous response to this same endpoint. When it matches the current ETag, the server returns 304 Not Modified with no body instead of re-sending the full payload.
+      - in: path
+        name: slug
+        schema:
+          type: string
+        description: URL-friendly unique identifier of the slot.
+        required: true
+      tags:
+      - Slots
+      security:
+      - TokenAuth: []
+      responses:
+        '200':
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+            X-Quota-Free-Remaining:
+              $ref: '#/components/headers/XQuotaFreeRemaining'
+            X-Quota-Paid-Balance:
+              $ref: '#/components/headers/XQuotaPaidBalance'
+            X-Quota-Resets-At:
+              $ref: '#/components/headers/XQuotaResetsAt'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SlotDetail'
+              examples:
+                SlotDetail:
+                  value:
+                    data:
+                      slug: example-slot-title
+                      name: Example Slot Title
+                      provider:
+                        slug: example-provider
+                        name: Example Provider
+                      game_category: video_slot
+                      rtp_default: '96.50'
+                      volatility: high
+                      max_win: 5000
+                      mechanic: ways
+                      mechanic_value: 243
+                      reels: 5
+                      rows: 3
+                      release_date: '2026-01-15'
+                      release_date_precision: day
+                      status: active
+                      studio: null
+                      series: null
+                      order_in_series: null
+                      licensed_brand: null
+                      rtp_variants:
+                      - rtp: '96.50'
+                        variant: default
+                        condition_note: ''
+                        is_default: true
+                      min_bet: '0.20'
+                      max_bet: '100.00'
+                      currency: EUR
+                      payline_direction: ltr
+                      jackpot_type: none
+                      jackpot_tiers: []
+                      has_bonus_buy: 'yes'
+                      bonus_buy_cost: '100.00'
+                      bonus_buys:
+                      - label: Free Spins
+                        cost: '100.00'
+                        effect: Awards 10 free spins
+                        is_default: true
+                      has_autoplay: 'yes'
+                      mobile_adapted: 'yes'
+                      ante_bet_cost: null
+                      themes:
+                      - slug: fishing
+                        name: Fishing
+                      features:
+                      - slug: free-spins
+                        name: Free spins
+                      aliases: []
+                      provider_ref: ''
+                      symbols: []
+                      modes: []
+                      accessibility_notes: []
+                      coverage_notes: []
+                      coverage_gap_count: 0
+                      captured_at: '2026-02-01T10:00:00Z'
+                      capture_method: Live demo capture (headless browser) & OCR verification
+                      counts:
+                        symbols: 0
+                        screenshots: 1
+                        modes: 0
+                        palette: 0
+                    spec_sheet:
+                      source: extracted, unverified
+                      raw: RTP 96.5% · Max win 5000x · 5 reels
+                      updated_at: '2026-02-02T08:15:00Z'
+                    assets:
+                      screenshots:
+                      - type: preview
+                        device: desktop
+                        page: base_game
+                        order: 0
+                        width: 1280
+                        height: 720
+                        note: ''
+                        url: https://cdn.i-gaming.tools/slots/example-slot-title/preview.webp
+                        srcset: ''
+                        key: slots/example-slot-title/preview.webp
+                        version: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+                      logo_url: https://cdn.i-gaming.tools/slots/example-slot-title/logo.webp
+                      logo:
+                        url: https://cdn.i-gaming.tools/slots/example-slot-title/logo.webp
+                        key: slots/example-slot-title/logo.webp
+                        version: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+                      palette: []
+                      demo:
+                        available: true
+                        page_url: https://i-gaming.tools/all-slots/example-slot-title/
+                        embed_url: https://demo.i-gaming.tools/iframe/example-slot-title/
+                  summary: Slot detail
+          description: Success.
+        '304':
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          description: Not Modified — the ETag in If-None-Match matched the current value. No body.
+        '401':
+          $ref: '#/components/responses/Err401'
+        '429':
+          $ref: '#/components/responses/Err429'
+        '402':
+          $ref: '#/components/responses/Err402'
+        '404':
+          $ref: '#/components/responses/Err404'
+  /api/v1/slots/{slug}/demand/:
+    get:
+      operationId: slots_demand_retrieve
+      description: 'Per-slot search-demand aggregate: volume_12m/prev_12m/yoy_pct/trend + 24-point sparkline, derived from the provider demand snapshot. Graceful nulls when the provider has no demand snapshot yet. ETag/304 via If-None-Match (seed=computed_at, mirrors provider /demand/). See the `months` parameter for the trailing-window override.'
+      summary: Slot demand snapshot
+      parameters:
+      - in: header
+        name: If-None-Match
+        schema:
+          type: string
+        description: Opaque ETag value from a previous response to this same endpoint. When it matches the current ETag, the server returns 304 Not Modified with no body instead of re-sending the full payload.
+      - in: query
+        name: months
+        schema:
+          type: string
+        description: 'Number of trailing months to include in months/totals/markets[].values. Integer values are clamped to [1, 60] (0/negative/huge values do not error, they clamp). ''all'' returns the full stored history (60 months). Omitting the parameter defaults to 12 months (pre-existing behaviour, byte-identical response shape). A non-numeric, non-"all" value returns 400. Note: per-market `volume_12m` always sums exactly the requested window — with `?months=all` it is NOT a 12-month sum despite the field name (the name is historical and kept for backward compatibility).'
+      - in: path
+        name: slug
+        schema:
+          type: string
+        description: URL-friendly unique identifier of the slot.
+        required: true
+      tags:
+      - Slots
+      security:
+      - TokenAuth: []
+      responses:
+        '200':
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+            X-Quota-Free-Remaining:
+              $ref: '#/components/headers/XQuotaFreeRemaining'
+            X-Quota-Paid-Balance:
+              $ref: '#/components/headers/XQuotaPaidBalance'
+            X-Quota-Resets-At:
+              $ref: '#/components/headers/XQuotaResetsAt'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SlotDemand'
+              examples:
+                SlotDemand:
+                  value:
+                    computed_at: '2026-08-01T03:15:00Z'
+                    volume_12m: 12000
+                    prev_12m: 9000
+                    yoy_pct: 33.3
+                    trend: growing
+                    sparkline:
+                    - 700
+                    - 720
+                    - 740
+                    - 760
+                    - 780
+                    - 800
+                    - 820
+                    - 840
+                    - 860
+                    - 880
+                    - 900
+                    - 920
+                    - 940
+                    - 960
+                    - 980
+                    - 1000
+                    - 1020
+                    - 1040
+                    - 1060
+                    - 1080
+                    - 1100
+                    - 1120
+                    - 1140
+                    - 1160
+                    months:
+                    - 2026-07
+                    - 2026-06
+                    - 2026-05
+                    totals:
+                    - 1160
+                    - 1140
+                    - 1120
+                    markets:
+                    - country: Brazil
+                      country_iso: BR
+                      flag: 🇧🇷
+                      values:
+                      - 640
+                      - 620
+                      - 600
+                      mom_delta: 20
+                      volume_12m: 7000
+                      trend: growing
+                    - country: Canada
+                      country_iso: CA
+                      flag: 🇨🇦
+                      values:
+                      - 520
+                      - 520
+                      - 520
+                      mom_delta: 0
+                      volume_12m: 5000
+                      trend: flat
+                  summary: Slot demand
+          description: Success.
+        '304':
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          description: Not Modified — the ETag in If-None-Match matched the current value. No body.
+        '401':
+          $ref: '#/components/responses/Err401'
+        '429':
+          $ref: '#/components/responses/Err429'
+        '402':
+          $ref: '#/components/responses/Err402'
+        '400':
+          $ref: '#/components/responses/Err400'
+        '404':
+          $ref: '#/components/responses/Err404'
+  /api/v1/slots/ids/:
+    get:
+      operationId: slots_ids_list
+      description: 'Cursor-paginated list of ALL public slot slugs for tombstone diff. Results are plain strings, not objects. Decrements quota once per request. REQUIRED for unpublish/compliance detection: ?updated_since delta does NOT include removed slots. Compare this set with your own copy and tombstone the slugs that are gone. X-Sync-Timestamp is included in the response header.'
+      summary: Reconcile — all public slot slugs
+      parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+        description: Opaque pagination cursor from a previous response's next/previous link.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+        description: Number of results per page. Default 20, maximum 100 — same limits as the rest of the public API. An operator-configured limit may lower the maximum.
+      tags:
+      - Slots
+      security:
+      - TokenAuth: []
+      responses:
+        '200':
+          headers:
+            X-Sync-Timestamp:
+              $ref: '#/components/headers/XSyncTimestamp'
+            X-Quota-Free-Remaining:
+              $ref: '#/components/headers/XQuotaFreeRemaining'
+            X-Quota-Paid-Balance:
+              $ref: '#/components/headers/XQuotaPaidBalance'
+            X-Quota-Resets-At:
+              $ref: '#/components/headers/XQuotaResetsAt'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  next:
+                    type:
+                    - string
+                    - 'null'
+                    format: uri
+                  previous:
+                    type:
+                    - string
+                    - 'null'
+                    format: uri
+                  results:
+                    type: array
+                    items:
+                      type: string
+                      example: example-slot-title
+                required:
+                - next
+                - previous
+                - results
+          description: Success.
+        '401':
+          $ref: '#/components/responses/Err401'
+        '429':
+          $ref: '#/components/responses/Err429'
+        '402':
+          $ref: '#/components/responses/Err402'
+        '400':
+          $ref: '#/components/responses/Err400'
+components:
+  responses:
+    Err404:
+      description: Not Found — resource does not exist or is not yet public.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Not found.
+                code: not_found
+    Err402:
+      description: Payment Required — billing quota exhausted (monthly free tier or paid balance depleted).
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Quota exhausted. Top up or wait until the monthly reset.
+                code: quota_exhausted
+      headers:
+        X-Quota-Free-Remaining:
+          $ref: '#/components/headers/XQuotaFreeRemaining'
+        X-Quota-Paid-Balance:
+          $ref: '#/components/headers/XQuotaPaidBalance'
+        X-Quota-Resets-At:
+          $ref: '#/components/headers/XQuotaResetsAt'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+    Err401:
+      description: Unauthorized — missing or invalid API token.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Authentication credentials were not provided.
+                code: unauthorized
+    Err400:
+      description: Bad Request — invalid filter or parameter value.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Invalid value for parameter "ordering".
+                code: invalid_parameter
+    Err429:
+      description: Too Many Requests — technical per-user rate limit exceeded.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Request was throttled. Try again later.
+                code: throttled
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+  headers:
+    XSyncTimestamp:
+      schema:
+        type: string
+      description: Start-of-request timestamp (ISO-8601 UTC). Returned on 200 and 304 responses of the endpoints that support incremental sync. Store it and pass it back as ?updated_since= on the next sync request — it is the start of this request, not its end, so changes made while you were paginating are not lost.
+    XQuotaFreeRemaining:
+      schema:
+        type: integer
+      description: Remaining monthly free-tier requests for the caller.
+    XQuotaPaidBalance:
+      schema:
+        type: integer
+      description: Remaining paid balance (requests) for the caller.
+    XQuotaResetsAt:
+      schema:
+        type: string
+        format: date-time
+      description: ISO-8601 UTC timestamp of the next monthly quota reset.
+    ETag:
+      schema:
+        type: string
+      description: Opaque validator for conditional requests. Pass it back via If-None-Match on the next request to this endpoint to receive 304 when nothing changed.
+    RetryAfter:
+      schema:
+        type: integer
+      description: Seconds to wait before retrying.
+  schemas:
+    TrendEnum:
+      enum:
+      - growing
+      - declining
+      - flat
+      type: string
+      description: '* `growing` - growing
+
+        * `declining` - declining
+
+        * `flat` - flat'
+    SlotDemand:
+      type: object
+      description: 'Per-slot search demand snapshot. computed_at: when the underlying provider snapshot was computed. volume_12m/prev_12m/yoy_pct: trailing-12-month aggregate and YoY change; these are null when there is no snapshot yet. trend: always one of growing/declining/flat — it falls back to ''flat'' rather than null when there is nothing to compare. sparkline: a fixed 24-point monthly series, OLDEST first, not affected by ?months=. months: "YYYY-MM" labels, NEWEST first — note the opposite direction to sparkline. Their count follows ?months= (default 12). totals: total demand per month, aligned to months (chart line). markets: per-country {country, country_iso, flag, values[] (aligned to months), mom_delta, volume_12m, trend}, sorted by month-over-month growth desc. No snapshot yet → 200 with nulls/empty (not 404).'
+      properties:
+        computed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        volume_12m:
+          type:
+          - integer
+          - 'null'
+        prev_12m:
+          type:
+          - integer
+          - 'null'
+        yoy_pct:
+          type:
+          - number
+          - 'null'
+          format: double
+        trend:
+          $ref: '#/components/schemas/TrendEnum'
+        sparkline:
+          type: array
+          items:
+            type: integer
+        months:
+          type: array
+          items:
+            type: string
+          readOnly: true
+        totals:
+          type: array
+          items:
+            type: integer
+          readOnly: true
+        markets:
+          type: array
+          items:
+            $ref: '#/components/schemas/SlotDemandMarket'
+          readOnly: true
+      required:
+      - computed_at
+      - markets
+      - months
+      - prev_12m
+      - sparkline
+      - totals
+      - trend
+      - volume_12m
+      - yoy_pct
+    PaginatedSlotListItemList:
+      type: object
+      required:
+      - results
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Absolute URL of the next page, or null on the last page.
+        previous:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Absolute URL of the previous page, or null on the first page.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SlotListItem'
+    SlotDetail:
+      type: object
+      description: 'Full slot profile in exactly three top-level blocks: data (verified, editorially curated), spec_sheet (unverified, as extracted), assets (screenshots, logo, palette, demo). Identity fields (slug, name, provider) live inside data, not at the top level.'
+      properties:
+        data:
+          type: object
+          properties:
+            slug:
+              type: string
+            name:
+              type: string
+            status:
+              type: string
+            provider:
+              type: object
+              properties:
+                slug:
+                  type: string
+                name:
+                  type: string
+              required:
+              - name
+              - slug
+            studio:
+              type:
+              - object
+              - 'null'
+              properties:
+                slug:
+                  type: string
+                name:
+                  type: string
+              required:
+              - name
+              - slug
+            series:
+              type:
+              - object
+              - 'null'
+              properties:
+                slug:
+                  type: string
+                name:
+                  type: string
+              required:
+              - name
+              - slug
+            order_in_series:
+              type:
+              - integer
+              - 'null'
+            licensed_brand:
+              type:
+              - object
+              - 'null'
+              properties:
+                slug:
+                  type: string
+                name:
+                  type: string
+                license_type:
+                  type: string
+              required:
+              - license_type
+              - name
+              - slug
+            game_category:
+              type: string
+            rtp_default:
+              type:
+              - string
+              - 'null'
+            rtp_variants:
+              type: array
+              items:
+                type: object
+                properties:
+                  rtp:
+                    type: string
+                  variant:
+                    type: string
+                  condition_note:
+                    type: string
+                  is_default:
+                    type: boolean
+                required:
+                - condition_note
+                - is_default
+                - rtp
+                - variant
+            volatility:
+              type:
+              - string
+              - 'null'
+            max_win:
+              type:
+              - integer
+              - 'null'
+            min_bet:
+              type:
+              - string
+              - 'null'
+            max_bet:
+              type:
+              - string
+              - 'null'
+            currency:
+              type: string
+            release_date:
+              type:
+              - string
+              - 'null'
+              format: date
+            release_date_precision:
+              type: string
+            mechanic:
+              type:
+              - string
+              - 'null'
+            mechanic_value:
+              type:
+              - integer
+              - 'null'
+            reels:
+              type:
+              - integer
+              - 'null'
+            rows:
+              type:
+              - integer
+              - 'null'
+            payline_direction:
+              type: string
+            jackpot_type:
+              type: string
+            jackpot_tiers:
+              type: array
+              items:
+                type: object
+                properties:
+                  label:
+                    type: string
+                  value:
+                    type:
+                    - string
+                    - 'null'
+                  value_kind:
+                    type: string
+                  order:
+                    type: integer
+                required:
+                - label
+                - order
+                - value
+                - value_kind
+            has_bonus_buy:
+              type: string
+            bonus_buy_cost:
+              type:
+              - string
+              - 'null'
+            bonus_buys:
+              type: array
+              items:
+                type: object
+                properties:
+                  label:
+                    type: string
+                  cost:
+                    type: string
+                  effect:
+                    type: string
+                  is_default:
+                    type: boolean
+                required:
+                - cost
+                - effect
+                - is_default
+                - label
+            has_autoplay:
+              type: string
+            mobile_adapted:
+              type: string
+            ante_bet_cost:
+              type:
+              - string
+              - 'null'
+            themes:
+              type: array
+              items:
+                type: object
+                properties:
+                  slug:
+                    type: string
+                  name:
+                    type: string
+                required:
+                - name
+                - slug
+            features:
+              type: array
+              items:
+                type: object
+                properties:
+                  slug:
+                    type: string
+                  name:
+                    type: string
+                required:
+                - name
+                - slug
+            aliases:
+              type: array
+              items:
+                type: string
+            provider_ref:
+              type: string
+            symbols:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  role:
+                    type: string
+                  role_label:
+                    type: string
+                  color_hex:
+                    type: string
+                  note:
+                    type: string
+                  order:
+                    type: integer
+                  icon_url:
+                    type:
+                    - string
+                    - 'null'
+                  key:
+                    type:
+                    - string
+                    - 'null'
+                  version:
+                    type:
+                    - string
+                    - 'null'
+                  payouts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        match_count:
+                          type: integer
+                        value:
+                          type: string
+                        unit:
+                          type: string
+                      required:
+                      - match_count
+                      - unit
+                      - value
+                required:
+                - color_hex
+                - icon_url
+                - key
+                - name
+                - note
+                - order
+                - payouts
+                - role
+                - role_label
+                - version
+            modes:
+              type: array
+              items:
+                type: object
+                properties:
+                  code:
+                    type: string
+                  name:
+                    type: string
+                  kind:
+                    type: string
+                  description:
+                    type: string
+                  order:
+                    type: integer
+                required:
+                - code
+                - description
+                - kind
+                - name
+                - order
+            accessibility_notes:
+              type: array
+              items:
+                type: object
+                properties:
+                  group:
+                    type: string
+                  text:
+                    type: string
+                  order:
+                    type: integer
+                required:
+                - group
+                - order
+                - text
+            coverage_notes:
+              type: array
+              items:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  text:
+                    type: string
+                  order:
+                    type: integer
+                required:
+                - order
+                - status
+                - text
+            coverage_gap_count:
+              type: integer
+            captured_at:
+              type:
+              - string
+              - 'null'
+              format: date-time
+            capture_method:
+              type: string
+              description: 'How the data was captured, as a short normalised phrase. Not a free-form field: the value comes from a fixed set.'
+            counts:
+              type: object
+              properties:
+                symbols:
+                  type: integer
+                screenshots:
+                  type: integer
+                modes:
+                  type: integer
+                palette:
+                  type: integer
+              required:
+              - modes
+              - palette
+              - screenshots
+              - symbols
+            provably_fair:
+              type: string
+            bets_per_round:
+              type:
+              - integer
+              - 'null'
+            has_auto_cashout:
+              type: string
+            game_subtype:
+              type:
+              - string
+              - 'null'
+            blackjack_payout:
+              type:
+              - string
+              - 'null'
+            side_bets:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  payout_note:
+                    type: string
+                  order:
+                    type: integer
+                required:
+                - name
+                - order
+                - payout_note
+          required:
+          - accessibility_notes
+          - aliases
+          - ante_bet_cost
+          - bonus_buy_cost
+          - bonus_buys
+          - capture_method
+          - captured_at
+          - counts
+          - coverage_gap_count
+          - coverage_notes
+          - currency
+          - features
+          - game_category
+          - has_autoplay
+          - has_bonus_buy
+          - jackpot_tiers
+          - jackpot_type
+          - licensed_brand
+          - max_bet
+          - max_win
+          - mechanic
+          - mechanic_value
+          - min_bet
+          - mobile_adapted
+          - modes
+          - name
+          - order_in_series
+          - payline_direction
+          - provider
+          - provider_ref
+          - reels
+          - release_date
+          - release_date_precision
+          - rows
+          - rtp_default
+          - rtp_variants
+          - series
+          - slug
+          - status
+          - studio
+          - symbols
+          - themes
+          - volatility
+          description: Verified, editorially curated structured data for this slot. Decimal values (rtp, bets, payouts) are strings. provably_fair, bets_per_round and has_auto_cashout appear only when game_category is "crash"; game_subtype, blackjack_payout and side_bets only when it is "table".
+          readOnly: true
+        spec_sheet:
+          type: object
+          properties:
+            source:
+              type: string
+            raw:
+              type:
+              - string
+              - 'null'
+            updated_at:
+              type:
+              - string
+              - 'null'
+              format: date-time
+          required:
+          - raw
+          - source
+          - updated_at
+          description: Unverified specification block, as extracted from the source. source is the constant "extracted, unverified"; raw is the extracted text or null; updated_at is when the extraction was last written.
+          readOnly: true
+        assets:
+          type: object
+          properties:
+            screenshots:
+              type: array
+              items:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  device:
+                    type: string
+                  page:
+                    type: string
+                  order:
+                    type: integer
+                  width:
+                    type:
+                    - integer
+                    - 'null'
+                  height:
+                    type:
+                    - integer
+                    - 'null'
+                  note:
+                    type: string
+                  url:
+                    type:
+                    - string
+                    - 'null'
+                  srcset:
+                    type:
+                    - string
+                    - 'null'
+                  key:
+                    type:
+                    - string
+                    - 'null'
+                  version:
+                    type:
+                    - string
+                    - 'null'
+                required:
+                - device
+                - height
+                - key
+                - note
+                - order
+                - page
+                - srcset
+                - type
+                - url
+                - version
+                - width
+            logo_url:
+              type:
+              - string
+              - 'null'
+            logo:
+              type:
+              - object
+              - 'null'
+              properties:
+                url:
+                  type:
+                  - string
+                  - 'null'
+                key:
+                  type:
+                  - string
+                  - 'null'
+                version:
+                  type:
+                  - string
+                  - 'null'
+              required:
+              - key
+              - url
+              - version
+            palette:
+              type: array
+              items:
+                type: object
+                properties:
+                  hex:
+                    type: string
+                  label:
+                    type: string
+                  context:
+                    type: string
+                  order:
+                    type: integer
+                required:
+                - context
+                - hex
+                - label
+                - order
+            demo:
+              type: object
+              properties:
+                available:
+                  type: boolean
+                page_url:
+                  type:
+                  - string
+                  - 'null'
+                embed_url:
+                  type:
+                  - string
+                  - 'null'
+              required:
+              - available
+              - embed_url
+              - page_url
+          required:
+          - demo
+          - logo
+          - logo_url
+          - palette
+          - screenshots
+          description: 'Media assets: screenshots (with key/version), logo, palette, demo embed info.'
+          readOnly: true
+      required:
+      - assets
+      - data
+      - spec_sheet
+    SlotListItem:
+      type: object
+      description: 'Compact slot listing item. thumbnail/thumbnail_url: CDN URL of first logo/preview screenshot. rtp_default: Decimal as string or null. mechanic: bet mechanic type.'
+      properties:
+        slug:
+          type: string
+        name:
+          type: string
+        provider:
+          type: object
+          description: The provider that released this slot.
+          properties:
+            slug:
+              type: string
+            name:
+              type: string
+          required:
+          - slug
+          - name
+          readOnly: true
+        game_category:
+          type: string
+        game_subtype:
+          type:
+          - string
+          - 'null'
+        rtp_default:
+          type:
+          - string
+          - 'null'
+          description: Decimal → str|null.
+          readOnly: true
+        volatility:
+          type:
+          - string
+          - 'null'
+        max_win:
+          type:
+          - integer
+          - 'null'
+        mechanic:
+          type:
+          - string
+          - 'null'
+        mechanic_value:
+          type:
+          - integer
+          - 'null'
+        release_date:
+          type:
+          - string
+          - 'null'
+          format: date
+        release_date_precision:
+          type: string
+        thumbnail_url:
+          type:
+          - string
+          - 'null'
+          description: 'CDN-URL of the first screenshot of type logo or preview.
+
+
+            Logo wins when both are present.'
+          readOnly: true
+        thumbnail:
+          type:
+          - object
+          - 'null'
+          description: Asset-versioned thumbnail object {url, key, version} or null.
+          properties:
+            url:
+              type: string
+              format: uri
+            key:
+              type: string
+              description: Storage key — the public path component of the URL.
+            version:
+              type:
+              - string
+              - 'null'
+              description: SHA-256 checksum of the image.
+          readOnly: true
+        volume_12m:
+          type:
+          - integer
+          - 'null'
+          readOnly: true
+        trend:
+          allOf:
+          - $ref: '#/components/schemas/TrendEnum'
+          readOnly: true
+        demo_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Demo-embed URL (same format as detail assets.demo.embed_url) or null.
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          description: When this record last changed on our side. This is the field ?updated_since= filters and orders by.
+      required:
+      - demo_url
+      - game_category
+      - game_subtype
+      - max_win
+      - mechanic
+      - mechanic_value
+      - name
+      - provider
+      - release_date
+      - release_date_precision
+      - rtp_default
+      - slug
+      - thumbnail
+      - thumbnail_url
+      - trend
+      - updated_at
+      - volatility
+      - volume_12m
+    SlotDemandMarket:
+      type: object
+      description: One country row of the slot demand matrix.
+      properties:
+        country:
+          type: string
+        country_iso:
+          type: string
+        flag:
+          type: string
+        values:
+          type: array
+          items:
+            type: integer
+        mom_delta:
+          type: integer
+        volume_12m:
+          type: integer
+        trend:
+          type: string
+      required:
+      - country
+      - country_iso
+      - flag
+      - mom_delta
+      - trend
+      - values
+      - volume_12m
+  securitySchemes:
+    TokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token <hex>. Create a free account and issue your own key at /account/; the key is shown once, at creation. Free tier included, no card required.
+externalDocs:
+  url: https://i-gaming.tools/docs/
+  description: Guides, reference and code examples

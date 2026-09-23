@@ -1,0 +1,993 @@
+openapi: 3.2.0
+info:
+  title: iGaming Tools Jobs API
+  version: 1.0.0
+  description: 'Public REST API for iGaming data: slot providers, slots, news, jobs, sources.'
+  termsOfService: https://i-gaming.tools/terms/
+  contact:
+    name: iGaming Tools support
+    email: support@i-gaming.tools
+    url: https://i-gaming.tools/docs/
+  license:
+    name: Terms of Service
+    url: https://i-gaming.tools/terms/
+servers:
+- url: https://i-gaming.tools
+tags:
+- name: Jobs
+paths:
+  /api/v1/jobs/:
+    get:
+      operationId: jobs_list
+      description: 'Public iGaming vacancy catalog. Cursor-pagination. No count. Field source_url — original vacancy page. Field url is absent: use source_url instead. With ?updated_since the order switches to (updated_at, id) ASC for forward sync, and only vacancies CHANGED since that moment are returned. Combine it with ?include_closed=true when replicating: without that, a vacancy that closed since your last run is simply absent from the delta, and your copy keeps showing it as open. Store the X-Sync-Timestamp header and pass it back on the next run.'
+      summary: List vacancies
+      parameters:
+      - in: query
+        name: brand_slug
+        schema:
+          type: string
+        description: Brand slug (exact). The provider or operator this vacancy is attributed to.
+      - in: query
+        name: city
+        schema:
+          type: string
+        description: City slug
+      - in: query
+        name: company
+        schema:
+          type: string
+        description: Company slug
+      - in: query
+        name: country
+        schema:
+          type: string
+        description: Location country ISO-2 (→ location_country)
+      - name: cursor
+        required: false
+        in: query
+        description: Opaque pagination cursor from a previous response's next/previous link.
+        schema:
+          type: string
+      - in: query
+        name: employment_type
+        schema:
+          type: string
+          enum:
+          - contract
+          - freelance
+          - full_time
+          - internship
+          - part_time
+        description: Employment type.
+      - in: query
+        name: igaming_segment
+        schema:
+          type: string
+          enum:
+          - affiliate
+          - casino
+          - esports
+          - game_studio
+          - lottery
+          - payment_provider
+          - platform_provider
+          - poker
+          - regulator
+          - sportsbook
+        description: iGaming segment.
+      - in: query
+        name: include_closed
+        schema:
+          type: boolean
+        description: false (default) = ACTIVE only; true = + CLOSED within window
+      - in: query
+        name: ordering
+        schema:
+          type: string
+          enum:
+          - -posted_at
+          - posted_at
+        description: 'Ordering (whitelist: posted_at, -posted_at; default -posted_at)'
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results per page. Default 20, maximum 100 — same limits as the rest of the public API. An operator-configured limit may lower the maximum.
+        schema:
+          type: integer
+      - in: query
+        name: posted_after
+        schema:
+          type: string
+          format: date-time
+        description: Posted at >= this value (ISO 8601, inclusive).
+      - in: query
+        name: posted_before
+        schema:
+          type: string
+          format: date-time
+        description: Posted at < this value (ISO 8601, EXCLUSIVE — the named moment is not included).
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Text search by title (case-insensitive substring)
+      - in: query
+        name: remote_mode
+        schema:
+          type: string
+          enum:
+          - hybrid
+          - on_site
+          - remote
+        description: Remote mode.
+      - in: query
+        name: seniority
+        schema:
+          type: string
+          enum:
+          - c_level
+          - head
+          - junior
+          - lead
+          - mid
+          - senior
+        description: Seniority level.
+      - in: query
+        name: skills
+        schema:
+          type: array
+          items:
+            type: string
+        description: Skill slugs (OR semantics; repeatable parameter)
+      - in: query
+        name: source
+        schema:
+          type: string
+          enum:
+          - careers
+          - linkedin
+        description: Source.
+      - in: query
+        name: updated_since
+        schema:
+          type: string
+          format: date-time
+        description: ISO-8601 datetime. Returns only records updated at or after this moment.
+      tags:
+      - Jobs
+      security:
+      - TokenAuth: []
+      responses:
+        '200':
+          headers:
+            X-Sync-Timestamp:
+              $ref: '#/components/headers/XSyncTimestamp'
+            X-Quota-Free-Remaining:
+              $ref: '#/components/headers/XQuotaFreeRemaining'
+            X-Quota-Paid-Balance:
+              $ref: '#/components/headers/XQuotaPaidBalance'
+            X-Quota-Resets-At:
+              $ref: '#/components/headers/XQuotaResetsAt'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedJobsListList'
+          description: Success.
+        '401':
+          $ref: '#/components/responses/Err401'
+        '429':
+          $ref: '#/components/responses/Err429'
+        '402':
+          $ref: '#/components/responses/Err402'
+        '400':
+          $ref: '#/components/responses/Err400'
+  /api/v1/jobs/{id}/:
+    get:
+      operationId: jobs_retrieve
+      description: Full vacancy card by UUID. CLOSED older than window or hidden → 404.
+      summary: Get vacancy detail
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Stable identifier of the vacancy, safe to store and reuse.
+        required: true
+      tags:
+      - Jobs
+      security:
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobsDetail'
+          description: Success.
+          headers:
+            X-Quota-Free-Remaining:
+              $ref: '#/components/headers/XQuotaFreeRemaining'
+            X-Quota-Paid-Balance:
+              $ref: '#/components/headers/XQuotaPaidBalance'
+            X-Quota-Resets-At:
+              $ref: '#/components/headers/XQuotaResetsAt'
+        '401':
+          $ref: '#/components/responses/Err401'
+        '429':
+          $ref: '#/components/responses/Err429'
+        '402':
+          $ref: '#/components/responses/Err402'
+        '404':
+          $ref: '#/components/responses/Err404'
+  /api/v1/jobs/stats/:
+    get:
+      operationId: jobs_stats_retrieve
+      description: Approximate counts for landing total-badge. total_approx — approximate row count (±5%; not an exact count). Free — this endpoint does not count against your quota.
+      summary: Jobs statistics (approximate)
+      tags:
+      - Jobs
+      security:
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_approx:
+                    type: integer
+                    description: Approximate count (±5%; not an exact count).
+                  by_status_public:
+                    type: object
+                    additionalProperties:
+                      type: integer
+                    description: Count per public status code.
+                  by_segment:
+                    type: object
+                    additionalProperties:
+                      type: integer
+                    description: Count per iGaming segment code.
+                  last_posted_at:
+                    type:
+                    - string
+                    - 'null'
+                    format: date-time
+                  computed_at:
+                    type: string
+                    format: date-time
+              examples:
+                ExampleResponse:
+                  value:
+                    total_approx: 4210
+                    by_status_public:
+                      live: 3900
+                      closed_recent: 310
+                    by_segment:
+                      casino: 1200
+                      sportsbook: 800
+                    last_posted_at: '2026-06-08T10:00:00Z'
+                    computed_at: '2026-06-09T12:00:00Z'
+                  summary: Example response
+          description: Success.
+          headers:
+            X-Quota-Free-Remaining:
+              $ref: '#/components/headers/XQuotaFreeRemaining'
+            X-Quota-Paid-Balance:
+              $ref: '#/components/headers/XQuotaPaidBalance'
+            X-Quota-Resets-At:
+              $ref: '#/components/headers/XQuotaResetsAt'
+        '401':
+          $ref: '#/components/responses/Err401'
+        '429':
+          $ref: '#/components/responses/Err429WithQuota'
+components:
+  schemas:
+    SourceEnum:
+      enum:
+      - careers
+      - linkedin
+      type: string
+      description: '* `careers` - Careers
+
+        * `linkedin` - LinkedIn'
+    VacancyLanguage:
+      type: object
+      description: One language requirement of a vacancy.
+      properties:
+        code:
+          type: string
+          description: ISO 639-1 lower-case language code.
+        level:
+          type: string
+          description: One of basic, intermediate, fluent, native — or empty when the vacancy does not state a level.
+      required:
+      - code
+      - level
+    TriStateEnum:
+      enum:
+      - 'yes'
+      - 'no'
+      - unknown
+      type: string
+      description: '* `yes` - Yes
+
+        * `no` - No
+
+        * `unknown` - Unknown'
+    SeniorityEnum:
+      enum:
+      - junior
+      - mid
+      - senior
+      - lead
+      - head
+      - c_level
+      type: string
+      description: '* `junior` - Junior
+
+        * `mid` - Mid
+
+        * `senior` - Senior
+
+        * `lead` - Lead
+
+        * `head` - Head
+
+        * `c_level` - C-level
+
+        * `` - Unknown'
+    RemoteModeEnum:
+      enum:
+      - on_site
+      - hybrid
+      - remote
+      type: string
+      description: '* `on_site` - On-site
+
+        * `hybrid` - Hybrid
+
+        * `remote` - Remote
+
+        * `` - Unknown'
+    JobsDetail:
+      type: object
+      description: 'Full iGaming job vacancy detail. Extends list fields with description, application URLs, and company info. secondary_apply_url: LinkedIn mirror link when available.'
+      properties:
+        id:
+          type: string
+          format: uuid
+        source:
+          $ref: '#/components/schemas/SourceEnum'
+        title:
+          type: string
+        company_name:
+          type: string
+        company:
+          type:
+          - object
+          - 'null'
+          properties:
+            slug:
+              type: string
+            canonical_name:
+              type: string
+            country:
+              type: string
+          readOnly: true
+        location_country:
+          type: string
+        location_city:
+          type: string
+        city:
+          type:
+          - object
+          - 'null'
+          properties:
+            slug:
+              type: string
+            canonical_name:
+              type: string
+            country:
+              type: string
+          readOnly: true
+        remote_mode:
+          oneOf:
+          - $ref: '#/components/schemas/RemoteModeEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        employment_type:
+          oneOf:
+          - $ref: '#/components/schemas/EmploymentTypeEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        seniority:
+          oneOf:
+          - $ref: '#/components/schemas/SeniorityEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        igaming_segment:
+          oneOf:
+          - $ref: '#/components/schemas/IgamingSegmentEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        salary_min:
+          type:
+          - string
+          - 'null'
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        salary_max:
+          type:
+          - string
+          - 'null'
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        salary_currency:
+          type: string
+        salary_period:
+          oneOf:
+          - $ref: '#/components/schemas/SalaryPeriodEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        salary_is_disclosed:
+          type: boolean
+        posted_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        last_seen_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        status_public:
+          allOf:
+          - $ref: '#/components/schemas/StatusPublicEnum'
+          readOnly: true
+        closed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          readOnly: true
+        closed_reason:
+          allOf:
+          - $ref: '#/components/schemas/ClosedReasonEnum'
+          readOnly: true
+        apply_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          readOnly: true
+        source_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          readOnly: true
+        secondary_apply_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          readOnly: true
+        summary:
+          type: string
+        responsibilities:
+          type: array
+          items:
+            type: string
+        requirements_must:
+          type: array
+          items:
+            type: string
+        requirements_nice:
+          type: array
+          items:
+            type: string
+        benefits:
+          type: array
+          items:
+            type: string
+        skills:
+          type: array
+          items:
+            type: string
+        skills_resolved:
+          type: array
+          items:
+            type: object
+            properties:
+              slug:
+                type: string
+              canonical_name:
+                type: string
+          readOnly: true
+        languages:
+          type: array
+          items:
+            $ref: '#/components/schemas/VacancyLanguage'
+          description: Language requirements stated by the vacancy.
+        licenses_relevant:
+          type: array
+          items:
+            type: string
+        product_areas:
+          type: array
+          items:
+            type: string
+        regulatory_role:
+          type: boolean
+        company_website:
+          type:
+          - string
+          - 'null'
+          format: uri
+          readOnly: true
+        company_logo_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          readOnly: true
+        company_size_bucket:
+          type: string
+        timezone_constraints:
+          type: string
+        salary_gross_or_net:
+          type: string
+        visa_sponsorship:
+          $ref: '#/components/schemas/TriStateEnum'
+        relocation_offered:
+          $ref: '#/components/schemas/TriStateEnum'
+        application_deadline:
+          type:
+          - string
+          - 'null'
+          format: date
+        apply_email:
+          type:
+          - string
+          - 'null'
+          format: email
+          readOnly: true
+        discovered_at:
+          type: string
+          format: date-time
+      required:
+      - application_deadline
+      - apply_email
+      - apply_url
+      - benefits
+      - city
+      - closed_at
+      - closed_reason
+      - company
+      - company_logo_url
+      - company_name
+      - company_size_bucket
+      - company_website
+      - discovered_at
+      - employment_type
+      - id
+      - igaming_segment
+      - languages
+      - last_seen_at
+      - licenses_relevant
+      - location_city
+      - location_country
+      - posted_at
+      - product_areas
+      - regulatory_role
+      - relocation_offered
+      - remote_mode
+      - requirements_must
+      - requirements_nice
+      - responsibilities
+      - salary_currency
+      - salary_gross_or_net
+      - salary_is_disclosed
+      - salary_max
+      - salary_min
+      - salary_period
+      - secondary_apply_url
+      - seniority
+      - skills
+      - skills_resolved
+      - source
+      - source_url
+      - status_public
+      - summary
+      - timezone_constraints
+      - title
+      - visa_sponsorship
+    IgamingSegmentEnum:
+      enum:
+      - sportsbook
+      - casino
+      - poker
+      - lottery
+      - esports
+      - affiliate
+      - platform_provider
+      - game_studio
+      - regulator
+      - payment_provider
+      type: string
+      description: '* `sportsbook` - Sportsbook
+
+        * `casino` - Casino
+
+        * `poker` - Poker
+
+        * `lottery` - Lottery
+
+        * `esports` - Esports
+
+        * `affiliate` - Affiliate
+
+        * `platform_provider` - Platform Provider
+
+        * `game_studio` - Game Studio
+
+        * `regulator` - Regulator
+
+        * `payment_provider` - Payment Provider
+
+        * `` - Unknown'
+    SalaryPeriodEnum:
+      enum:
+      - year
+      - month
+      - day
+      - hour
+      type: string
+      description: '* `year` - Per year
+
+        * `month` - Per month
+
+        * `day` - Per day
+
+        * `hour` - Per hour
+
+        * `` - Unknown'
+    PaginatedJobsListList:
+      type: object
+      required:
+      - results
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Absolute URL of the next page, or null on the last page.
+        previous:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Absolute URL of the previous page, or null on the first page.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/JobsList'
+    ClosedReasonEnum:
+      type: string
+      enum:
+      - filled
+      - closed
+      - expired
+    StatusPublicEnum:
+      type: string
+      enum:
+      - live
+      - closed
+    EmploymentTypeEnum:
+      enum:
+      - full_time
+      - part_time
+      - contract
+      - freelance
+      - internship
+      type: string
+      description: '* `full_time` - Full-time
+
+        * `part_time` - Part-time
+
+        * `contract` - Contract
+
+        * `freelance` - Freelance
+
+        * `internship` - Internship
+
+        * `` - Unknown'
+    BlankEnum:
+      enum:
+      - ''
+    JobsList:
+      type: object
+      description: 'iGaming job vacancy card (list view). JSON key "url" is absent: use source_url instead.'
+      properties:
+        id:
+          type: string
+          format: uuid
+        source:
+          $ref: '#/components/schemas/SourceEnum'
+        title:
+          type: string
+        company_name:
+          type: string
+        company:
+          type:
+          - object
+          - 'null'
+          properties:
+            slug:
+              type: string
+            canonical_name:
+              type: string
+            country:
+              type: string
+          readOnly: true
+        location_country:
+          type: string
+        location_city:
+          type: string
+        city:
+          type:
+          - object
+          - 'null'
+          properties:
+            slug:
+              type: string
+            canonical_name:
+              type: string
+            country:
+              type: string
+          readOnly: true
+        remote_mode:
+          oneOf:
+          - $ref: '#/components/schemas/RemoteModeEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        employment_type:
+          oneOf:
+          - $ref: '#/components/schemas/EmploymentTypeEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        seniority:
+          oneOf:
+          - $ref: '#/components/schemas/SeniorityEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        igaming_segment:
+          oneOf:
+          - $ref: '#/components/schemas/IgamingSegmentEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        salary_min:
+          type:
+          - string
+          - 'null'
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        salary_max:
+          type:
+          - string
+          - 'null'
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        salary_currency:
+          type: string
+        salary_period:
+          oneOf:
+          - $ref: '#/components/schemas/SalaryPeriodEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        salary_is_disclosed:
+          type: boolean
+        posted_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        last_seen_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        status_public:
+          allOf:
+          - $ref: '#/components/schemas/StatusPublicEnum'
+          readOnly: true
+        closed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          readOnly: true
+        closed_reason:
+          allOf:
+          - $ref: '#/components/schemas/ClosedReasonEnum'
+          readOnly: true
+        apply_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          readOnly: true
+        source_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          readOnly: true
+      required:
+      - apply_url
+      - city
+      - closed_at
+      - closed_reason
+      - company
+      - company_name
+      - employment_type
+      - id
+      - igaming_segment
+      - last_seen_at
+      - location_city
+      - location_country
+      - posted_at
+      - remote_mode
+      - salary_currency
+      - salary_is_disclosed
+      - salary_max
+      - salary_min
+      - salary_period
+      - seniority
+      - source
+      - source_url
+      - status_public
+      - title
+  responses:
+    Err429:
+      description: Too Many Requests — technical per-user rate limit exceeded.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Request was throttled. Try again later.
+                code: throttled
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+    Err402:
+      description: Payment Required — billing quota exhausted (monthly free tier or paid balance depleted).
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Quota exhausted. Top up or wait until the monthly reset.
+                code: quota_exhausted
+      headers:
+        X-Quota-Free-Remaining:
+          $ref: '#/components/headers/XQuotaFreeRemaining'
+        X-Quota-Paid-Balance:
+          $ref: '#/components/headers/XQuotaPaidBalance'
+        X-Quota-Resets-At:
+          $ref: '#/components/headers/XQuotaResetsAt'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+    Err401:
+      description: Unauthorized — missing or invalid API token.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Authentication credentials were not provided.
+                code: unauthorized
+    Err429WithQuota:
+      description: Too Many Requests — technical per-user rate limit exceeded.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Request was throttled. Try again later.
+                code: throttled
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Quota-Free-Remaining:
+          $ref: '#/components/headers/XQuotaFreeRemaining'
+        X-Quota-Paid-Balance:
+          $ref: '#/components/headers/XQuotaPaidBalance'
+        X-Quota-Resets-At:
+          $ref: '#/components/headers/XQuotaResetsAt'
+    Err404:
+      description: Not Found — resource does not exist or is not yet public.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Not found.
+                code: not_found
+    Err400:
+      description: Bad Request — invalid filter or parameter value.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Invalid value for parameter "ordering".
+                code: invalid_parameter
+  headers:
+    RetryAfter:
+      schema:
+        type: integer
+      description: Seconds to wait before retrying.
+    XSyncTimestamp:
+      schema:
+        type: string
+      description: Start-of-request timestamp (ISO-8601 UTC). Returned on 200 and 304 responses of the endpoints that support incremental sync. Store it and pass it back as ?updated_since= on the next sync request — it is the start of this request, not its end, so changes made while you were paginating are not lost.
+    XQuotaFreeRemaining:
+      schema:
+        type: integer
+      description: Remaining monthly free-tier requests for the caller.
+    XQuotaPaidBalance:
+      schema:
+        type: integer
+      description: Remaining paid balance (requests) for the caller.
+    XQuotaResetsAt:
+      schema:
+        type: string
+        format: date-time
+      description: ISO-8601 UTC timestamp of the next monthly quota reset.
+  securitySchemes:
+    TokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token <hex>. Create a free account and issue your own key at /account/; the key is shown once, at creation. Free tier included, no card required.
+externalDocs:
+  url: https://i-gaming.tools/docs/
+  description: Guides, reference and code examples

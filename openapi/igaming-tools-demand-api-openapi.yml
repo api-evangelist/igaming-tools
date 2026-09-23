@@ -1,0 +1,912 @@
+openapi: 3.2.0
+info:
+  title: iGaming Tools Demand API
+  version: 1.0.0
+  description: 'Public REST API for iGaming data: slot providers, slots, news, jobs, sources.'
+  termsOfService: https://i-gaming.tools/terms/
+  contact:
+    name: iGaming Tools support
+    email: support@i-gaming.tools
+    url: https://i-gaming.tools/docs/
+  license:
+    name: Terms of Service
+    url: https://i-gaming.tools/terms/
+servers:
+- url: https://i-gaming.tools
+tags:
+- name: Demand
+paths:
+  /api/v1/demand/:
+    get:
+      operationId: demand_list
+      description: 'Single parametrized endpoint over the market-demand cut (slot × country search-volume aggregate). The volume_12m figure is a SUM over a rolling 12-month window shared by every row in the response (not the latest month) — see meta.window and meta.coverage.pairs_at_frontier_pct for how complete the current month''s collection is. coverage=our own catalogue, not the wider market (meta.coverage.basis). The response schema is a oneOf over four envelopes, one per axis family, and meta.by tells you which one you received: by=''slot'' carries per-market detail, by=''slot_global'' aggregates a slot across markets, by=''country'' is one market per row, and the remaining axes share a keyed shape. See the examples for each.'
+      summary: Search-demand cut
+      parameters:
+      - in: query
+        name: by
+        schema:
+          type: string
+          enum:
+          - country
+          - feature
+          - game_category
+          - mechanic
+          - provider
+          - slot
+          - slot_global
+          - theme
+          default: slot
+        description: Cut axis; the shape of each result item is decided by this parameter alone. 'slot' (default) is one slot in ONE market and requires ?country=; 'slot_global' is one slot aggregated across every tracked market and does not require one; passing ?country= there simply narrows the aggregate. 'country' is one market; 'provider', 'theme', 'feature', 'mechanic' and 'game_category' share one shape keyed by the axis value. Any other value → 400. 'theme'/'feature' are overlapping axes (a slot with multiple themes counts in each) — see response meta.overlapping.
+      - in: query
+        name: country
+        schema:
+          type: string
+        description: 2-letter ISO country code (case-insensitive, normalized to upper-case). REQUIRED when by='slot', because that axis reports one slot in one market and its per-market fields are undefined without one — use by='slot_global' for a worldwide ranking instead. Optional for every other axis, where omitting it aggregates across all tracked markets. Invalid format → 400.
+      - in: query
+        name: coverage
+        schema:
+          type: boolean
+          default: true
+        description: 'false suppresses meta.coverage entirely — the coverage aggregates are not computed at all, rather than computed and discarded. Omitted or true follows the default rule: meta.coverage is populated on the first page of a cursor traversal (previous == null) and null on subsequent pages. Any other value returns 400.'
+      - in: query
+        name: cursor
+        schema:
+          type: string
+        description: Opaque pagination cursor from a previous response's next/previous link.
+      - in: query
+        name: feature
+        schema:
+          type: string
+        description: Feature slug (exact match). Non-existent slug → empty results, not 400.
+      - in: query
+        name: game_category
+        schema:
+          type: string
+          enum:
+          - crash
+          - instant_win
+          - live
+          - other
+          - scratch
+          - table
+          - unknown
+          - video_slot
+        description: 'Game category filter (catalogue). One of: unknown, video_slot, crash, instant_win, scratch, live, table, other. Not to be confused with ?by=game_category (cut axis) — both can be combined.'
+      - in: query
+        name: has_bonus_buy
+        schema:
+          type: string
+        description: '''true'' or ''false''. Any other value returns 400.'
+      - in: query
+        name: jackpot_type
+        schema:
+          type: string
+          enum:
+          - fixed
+          - none
+          - pooled
+          - progressive
+          - unknown
+        description: Jackpot type (none/fixed/progressive/pooled/unknown)
+      - in: query
+        name: max_win_max
+        schema:
+          type: integer
+        description: max_win <= this value (multiplier of stake, positive integer). Also filters GET /api/v1/demand/ — same catalogue filter.
+      - in: query
+        name: max_win_min
+        schema:
+          type: integer
+        description: max_win >= this value (multiplier of stake, positive integer). Also filters GET /api/v1/demand/ — same catalogue filter.
+      - in: query
+        name: mechanic
+        schema:
+          type: string
+          enum:
+          - cluster
+          - lines
+          - megaways
+          - scatter_pays
+          - variable_ways
+          - ways
+        description: 'Bet mechanic (catalogue filter). One of: lines, ways, cluster, megaways, scatter_pays. Not to be confused with ?by=mechanic (cut axis) — both can be combined.'
+      - in: query
+        name: ordering
+        schema:
+          type: string
+          enum:
+          - -volume_12m
+          - volume_12m
+          default: -volume_12m
+        description: 'Whitelist: ''-volume_12m'' (default, highest demand first) or ''volume_12m'' (lowest first). Any other value → 400.'
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+        description: Number of results per page. Default 20, maximum 100 — same limits as the rest of the public API. An operator-configured limit may lower the maximum.
+      - in: query
+        name: provider
+        schema:
+          type: string
+        description: Provider slug (exact match). Non-existent slug → empty results, not 400. Not to be confused with ?by=provider (cut axis) — both can be combined.
+      - in: query
+        name: released_after
+        schema:
+          type: string
+          format: date
+        description: ISO date (YYYY-MM-DD). release_date >= this value. Slots with release_date IS NULL are excluded. 400 on invalid format.
+      - in: query
+        name: released_before
+        schema:
+          type: string
+          format: date
+        description: ISO date (YYYY-MM-DD). release_date <= this value — INCLUSIVE, the named day is part of the range. Note that ?published_before, ?posted_before and ?established_before on other endpoints are EXCLUSIVE. Slots with release_date IS NULL are excluded. 400 on invalid format.
+      - in: query
+        name: rtp_max
+        schema:
+          type: number
+          format: double
+        description: rtp_default <= this value (percent, decimal, e.g. 96.5). Also filters GET /api/v1/demand/ — same catalogue filter.
+      - in: query
+        name: rtp_min
+        schema:
+          type: number
+          format: double
+        description: rtp_default >= this value (percent, decimal, e.g. 96.5). Also filters GET /api/v1/demand/ — same catalogue filter.
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Case-insensitive substring search over slot name + aliases. Empty/whitespace-only value is a no-op (does not narrow results). Soft-clipped to 100 characters (not a 400).
+      - in: query
+        name: series
+        schema:
+          type: string
+        description: Series slug (exact match). A slot belongs to at most one series.
+      - in: query
+        name: theme
+        schema:
+          type: string
+        description: Theme slug (exact match). Non-existent slug → empty results, not 400.
+      - in: query
+        name: volatility
+        schema:
+          type: string
+          enum:
+          - high
+          - low
+          - med_high
+          - med_low
+          - medium
+          - very_high
+        description: Volatility (low/med_low/medium/med_high/high/very_high)
+      tags:
+      - Demand
+      security:
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DemandCutEnvelope'
+              examples:
+                CutBySlot(default,Requires?country=):
+                  value:
+                    meta:
+                      by: slot
+                      country: BR
+                      window:
+                        start: 2025-07
+                        end: 2026-06
+                      window_mixed: false
+                      metric: volume_12m
+                      total_volume_12m: 4820100
+                      overlapping: false
+                      coverage:
+                        basis: our_catalogue
+                        markets_tracked: 81
+                        slots_total: 509
+                        providers:
+                        - slug: pragmatic-play
+                          name: Pragmatic Play
+                          slots: 509
+                        pairs_at_frontier_pct: 70
+                        computed_at: '2026-07-29T03:30:00Z'
+                    next: null
+                    previous: null
+                    results:
+                    - slot:
+                        slug: example-slot-title
+                        name: Example Slot Title
+                        provider:
+                          slug: pragmatic-play
+                          name: Pragmatic Play
+                        demo_url: https://demo.i-gaming.tools/iframe/example-slot-title/
+                      volume_12m: 12000
+                      months_covered: 12
+                      last_seen:
+                        month: 2026-06
+                        volume: 1100
+                      prev_volume: 950
+                  summary: Cut by slot (default, requires ?country=)
+                CutBySlotGlobal(worldwideRanking,No?country=Needed):
+                  value:
+                    meta:
+                      by: slot_global
+                      country: null
+                      window:
+                        start: 2025-08
+                        end: 2026-07
+                      window_mixed: false
+                      metric: volume_12m
+                      total_volume_12m: 1200000
+                      overlapping: false
+                      coverage: null
+                    next: https://i-gaming.tools/api/v1/demand/?by=slot_global&cursor=abc
+                    previous: null
+                    results:
+                    - slot:
+                        slug: example-slot-title
+                        name: Example Slot Title
+                        provider:
+                          slug: example-provider
+                          name: Example Provider
+                        demo_url: null
+                      volume_12m: 48000
+                      markets_with_data: 17
+                  summary: Cut by slot_global (worldwide ranking, no ?country= needed)
+                CutByCountry(marketMap,OneCall—No?country=Filter):
+                  value:
+                    meta:
+                      by: country
+                      country: null
+                      window:
+                        start: 2025-07
+                        end: 2026-06
+                      window_mixed: false
+                      metric: volume_12m
+                      total_volume_12m: 4820100
+                      overlapping: false
+                      coverage: null
+                    next: https://i-gaming.tools/api/v1/demand/?by=country&cursor=abc
+                    previous: null
+                    results:
+                    - country:
+                        iso: BR
+                        name: Brazil
+                      volume_12m: 812000
+                      slots_with_data: 509
+                      pairs_at_frontier_pct: 70
+                  summary: Cut by country (market map, one call — no ?country= filter)
+                CutByProvider|theme|feature|mechanic|gameCategory:
+                  value:
+                    meta:
+                      by: game_category
+                      country: null
+                      window:
+                        start: 2025-07
+                        end: 2026-06
+                      window_mixed: false
+                      metric: volume_12m
+                      total_volume_12m: 4820100
+                      overlapping: false
+                      coverage: null
+                    next: null
+                    previous: null
+                    results:
+                    - key:
+                        slug: video_slot
+                        name: Video Slot
+                      volume_12m: 4400000
+                      slots_with_data: 480
+                  summary: Cut by provider|theme|feature|mechanic|game_category
+          description: Success.
+          headers:
+            X-Quota-Free-Remaining:
+              $ref: '#/components/headers/XQuotaFreeRemaining'
+            X-Quota-Paid-Balance:
+              $ref: '#/components/headers/XQuotaPaidBalance'
+            X-Quota-Resets-At:
+              $ref: '#/components/headers/XQuotaResetsAt'
+        '401':
+          $ref: '#/components/responses/Err401'
+        '429':
+          $ref: '#/components/responses/Err429'
+        '402':
+          $ref: '#/components/responses/Err402'
+        '400':
+          $ref: '#/components/responses/Err400'
+components:
+  schemas:
+    SlotCut:
+      type: object
+      description: 'Result item for `by=slot`: `{slot: {slug, name, provider: {slug, name}},
+
+        volume_12m, months_covered, last_seen: {month, volume}, prev_volume}`.'
+      properties:
+        slot:
+          type: object
+          description: The slot this row aggregates.
+          properties:
+            slug:
+              type: string
+            name:
+              type: string
+            provider:
+              type: object
+              properties:
+                slug:
+                  type: string
+                name:
+                  type: string
+              required:
+              - slug
+              - name
+            demo_url:
+              type:
+              - string
+              - 'null'
+              format: uri
+              description: Demo-embed URL (same format as detail assets.demo.embed_url) or null.
+          required:
+          - slug
+          - name
+          - provider
+          - demo_url
+          readOnly: true
+        volume_12m:
+          type: integer
+        months_covered:
+          type: integer
+        last_seen:
+          type: object
+          description: The most recent month with data for this pair. volume may legitimately be 0 — that is a measurement, not a missing value.
+          properties:
+            month:
+              type: string
+              example: 2026-06
+            volume:
+              type: integer
+          required:
+          - month
+          - volume
+          readOnly: true
+        prev_volume:
+          type:
+          - integer
+          - 'null'
+      required:
+      - last_seen
+      - months_covered
+      - prev_volume
+      - slot
+      - volume_12m
+    DemandCutEnvelope:
+      oneOf:
+      - $ref: '#/components/schemas/SlotCutEnvelope'
+      - $ref: '#/components/schemas/SlotGlobalCutEnvelope'
+      - $ref: '#/components/schemas/CountryCutEnvelope'
+      - $ref: '#/components/schemas/KeyCutEnvelope'
+    DemandMetaSlot:
+      type: object
+      description: Response metadata for this envelope. by is pinned to "slot"; every other field is identical across axes.
+      properties:
+        by:
+          $ref: '#/components/schemas/DemandMetaSlotByEnum'
+        country:
+          type:
+          - string
+          - 'null'
+        window:
+          $ref: '#/components/schemas/DemandWindow'
+        window_mixed:
+          type: boolean
+        metric:
+          type: string
+        total_volume_12m:
+          type: integer
+        overlapping:
+          type: boolean
+        coverage:
+          allOf:
+          - $ref: '#/components/schemas/DemandCoverage'
+      required:
+      - by
+      - country
+      - coverage
+      - metric
+      - overlapping
+      - total_volume_12m
+      - window
+      - window_mixed
+    SlotGlobalCut:
+      type: object
+      description: 'Result item for ?by=slot_global: one slot, aggregated across every market we track. Use this for a worldwide ranking; use ?by=slot with ?country= when you need per-market detail.'
+      properties:
+        slot:
+          type: object
+          description: The slot this row aggregates.
+          properties:
+            slug:
+              type: string
+            name:
+              type: string
+            provider:
+              type: object
+              properties:
+                slug:
+                  type: string
+                name:
+                  type: string
+              required:
+              - slug
+              - name
+            demo_url:
+              type:
+              - string
+              - 'null'
+              format: uri
+              description: Demo-embed URL (same format as detail assets.demo.embed_url) or null.
+          required:
+          - slug
+          - name
+          - provider
+          - demo_url
+          readOnly: true
+        volume_12m:
+          type: integer
+        markets_with_data:
+          type: integer
+      required:
+      - markets_with_data
+      - slot
+      - volume_12m
+    DemandMetaCountry:
+      type: object
+      description: Response metadata for this envelope. by is pinned to "country"; every other field is identical across axes.
+      properties:
+        by:
+          $ref: '#/components/schemas/DemandMetaCountryByEnum'
+        country:
+          type:
+          - string
+          - 'null'
+        window:
+          $ref: '#/components/schemas/DemandWindow'
+        window_mixed:
+          type: boolean
+        metric:
+          type: string
+        total_volume_12m:
+          type: integer
+        overlapping:
+          type: boolean
+        coverage:
+          allOf:
+          - $ref: '#/components/schemas/DemandCoverage'
+      required:
+      - by
+      - country
+      - coverage
+      - metric
+      - overlapping
+      - total_volume_12m
+      - window
+      - window_mixed
+    DemandCoverage:
+      type: object
+      description: '`meta.coverage` — what the number is made of. `null` on pages after the
+
+        first one and when `?coverage=false` is passed.'
+      properties:
+        basis:
+          type: string
+        markets_tracked:
+          type: integer
+        slots_total:
+          type: integer
+        providers:
+          type: array
+          items:
+            $ref: '#/components/schemas/DemandProviderCoverage'
+        pairs_at_frontier_pct:
+          type: integer
+        computed_at:
+          type:
+          - string
+          - 'null'
+      required:
+      - basis
+      - computed_at
+      - markets_tracked
+      - pairs_at_frontier_pct
+      - providers
+      - slots_total
+    KeyCut:
+      type: object
+      description: 'Result item for ?by=provider, theme, feature, mechanic or game_category — one shape shared by all five axes: the axis value, its rolling 12-month volume, and how many slots carry data for it.'
+      properties:
+        key:
+          type: object
+          description: 'The value of the chosen axis: {slug, name}.'
+          properties:
+            slug:
+              type: string
+            name:
+              type: string
+          required:
+          - slug
+          - name
+          readOnly: true
+        volume_12m:
+          type: integer
+        slots_with_data:
+          type: integer
+      required:
+      - key
+      - slots_with_data
+      - volume_12m
+    DemandMetaSlotByEnum:
+      enum:
+      - slot
+      type: string
+      description: '* `slot` - slot'
+    CountryCut:
+      type: object
+      description: 'Result item for ?by=country: one market, with its rolling 12-month volume, how many slots carry data there, and how complete the current collection is.'
+      properties:
+        country:
+          type: object
+          description: 'The market: {iso, name}.'
+          properties:
+            iso:
+              type: string
+            name:
+              type: string
+          required:
+          - iso
+          - name
+          readOnly: true
+        volume_12m:
+          type: integer
+        slots_with_data:
+          type: integer
+        pairs_at_frontier_pct:
+          type: integer
+          description: Share of this country's pairs collected at the frontier, rounded to whole percent.
+          readOnly: true
+      required:
+      - country
+      - pairs_at_frontier_pct
+      - slots_with_data
+      - volume_12m
+    DemandMetaCountryByEnum:
+      enum:
+      - country
+      type: string
+      description: '* `country` - country'
+    CountryCutEnvelope:
+      type: object
+      description: 'Response for ?by=country: each result is one market.'
+      properties:
+        meta:
+          $ref: '#/components/schemas/DemandMetaCountry'
+        next:
+          type:
+          - string
+          - 'null'
+          description: Absolute URL of the next page, or null on the last page.
+        previous:
+          type:
+          - string
+          - 'null'
+          description: Absolute URL of the previous page, or null on the first page.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CountryCut'
+      required:
+      - meta
+      - next
+      - previous
+      - results
+    DemandMetaProviderThemeFeatureMechanicGameCategory:
+      type: object
+      description: Response metadata for this envelope. by is one of "provider", "theme", "feature", "mechanic", "game_category"; every other field is identical across axes.
+      properties:
+        by:
+          $ref: '#/components/schemas/DemandMetaProviderThemeFeatureMechanicGameCategoryByEnum'
+        country:
+          type:
+          - string
+          - 'null'
+        window:
+          $ref: '#/components/schemas/DemandWindow'
+        window_mixed:
+          type: boolean
+        metric:
+          type: string
+        total_volume_12m:
+          type: integer
+        overlapping:
+          type: boolean
+        coverage:
+          allOf:
+          - $ref: '#/components/schemas/DemandCoverage'
+      required:
+      - by
+      - country
+      - coverage
+      - metric
+      - overlapping
+      - total_volume_12m
+      - window
+      - window_mixed
+    DemandMetaProviderThemeFeatureMechanicGameCategoryByEnum:
+      enum:
+      - provider
+      - theme
+      - feature
+      - mechanic
+      - game_category
+      type: string
+      description: '* `provider` - provider
+
+        * `theme` - theme
+
+        * `feature` - feature
+
+        * `mechanic` - mechanic
+
+        * `game_category` - game_category'
+    DemandWindow:
+      type: object
+      description: '`meta.window` — bounds of the shared rolling 12-month window. `null,null`
+
+        on an empty (not yet materialized) table.'
+      properties:
+        start:
+          type:
+          - string
+          - 'null'
+        end:
+          type:
+          - string
+          - 'null'
+      required:
+      - end
+      - start
+    SlotGlobalCutEnvelope:
+      type: object
+      description: 'Response for ?by=slot_global: each result is one slot, aggregated across every tracked market.'
+      properties:
+        meta:
+          $ref: '#/components/schemas/DemandMetaSlotGlobal'
+        next:
+          type:
+          - string
+          - 'null'
+          description: Absolute URL of the next page, or null on the last page.
+        previous:
+          type:
+          - string
+          - 'null'
+          description: Absolute URL of the previous page, or null on the first page.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SlotGlobalCut'
+      required:
+      - meta
+      - next
+      - previous
+      - results
+    KeyCutEnvelope:
+      type: object
+      description: 'Response for ?by=provider, theme, feature, mechanic or game_category: each result is one value of the chosen axis.'
+      properties:
+        meta:
+          $ref: '#/components/schemas/DemandMetaProviderThemeFeatureMechanicGameCategory'
+        next:
+          type:
+          - string
+          - 'null'
+          description: Absolute URL of the next page, or null on the last page.
+        previous:
+          type:
+          - string
+          - 'null'
+          description: Absolute URL of the previous page, or null on the first page.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeyCut'
+      required:
+      - meta
+      - next
+      - previous
+      - results
+    DemandMetaSlotGlobalByEnum:
+      enum:
+      - slot_global
+      type: string
+      description: '* `slot_global` - slot_global'
+    DemandProviderCoverage:
+      type: object
+      description: Element of `meta.coverage.providers[]`.
+      properties:
+        slug:
+          type: string
+        name:
+          type: string
+        slots:
+          type: integer
+      required:
+      - name
+      - slots
+      - slug
+    SlotCutEnvelope:
+      type: object
+      description: 'Response for ?by=slot (the default axis): each result is one slot in one market.'
+      properties:
+        meta:
+          $ref: '#/components/schemas/DemandMetaSlot'
+        next:
+          type:
+          - string
+          - 'null'
+          description: Absolute URL of the next page, or null on the last page.
+        previous:
+          type:
+          - string
+          - 'null'
+          description: Absolute URL of the previous page, or null on the first page.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SlotCut'
+      required:
+      - meta
+      - next
+      - previous
+      - results
+    DemandMetaSlotGlobal:
+      type: object
+      description: Response metadata for this envelope. by is pinned to "slot_global"; every other field is identical across axes.
+      properties:
+        by:
+          $ref: '#/components/schemas/DemandMetaSlotGlobalByEnum'
+        country:
+          type:
+          - string
+          - 'null'
+        window:
+          $ref: '#/components/schemas/DemandWindow'
+        window_mixed:
+          type: boolean
+        metric:
+          type: string
+        total_volume_12m:
+          type: integer
+        overlapping:
+          type: boolean
+        coverage:
+          allOf:
+          - $ref: '#/components/schemas/DemandCoverage'
+      required:
+      - by
+      - country
+      - coverage
+      - metric
+      - overlapping
+      - total_volume_12m
+      - window
+      - window_mixed
+  responses:
+    Err429:
+      description: Too Many Requests — technical per-user rate limit exceeded.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Request was throttled. Try again later.
+                code: throttled
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+    Err402:
+      description: Payment Required — billing quota exhausted (monthly free tier or paid balance depleted).
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Quota exhausted. Top up or wait until the monthly reset.
+                code: quota_exhausted
+      headers:
+        X-Quota-Free-Remaining:
+          $ref: '#/components/headers/XQuotaFreeRemaining'
+        X-Quota-Paid-Balance:
+          $ref: '#/components/headers/XQuotaPaidBalance'
+        X-Quota-Resets-At:
+          $ref: '#/components/headers/XQuotaResetsAt'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+    Err401:
+      description: Unauthorized — missing or invalid API token.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Authentication credentials were not provided.
+                code: unauthorized
+    Err400:
+      description: Bad Request — invalid filter or parameter value.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Invalid value for parameter "ordering".
+                code: invalid_parameter
+  headers:
+    RetryAfter:
+      schema:
+        type: integer
+      description: Seconds to wait before retrying.
+    XQuotaFreeRemaining:
+      schema:
+        type: integer
+      description: Remaining monthly free-tier requests for the caller.
+    XQuotaPaidBalance:
+      schema:
+        type: integer
+      description: Remaining paid balance (requests) for the caller.
+    XQuotaResetsAt:
+      schema:
+        type: string
+        format: date-time
+      description: ISO-8601 UTC timestamp of the next monthly quota reset.
+  securitySchemes:
+    TokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token <hex>. Create a free account and issue your own key at /account/; the key is shown once, at creation. Free tier included, no card required.
+externalDocs:
+  url: https://i-gaming.tools/docs/
+  description: Guides, reference and code examples
