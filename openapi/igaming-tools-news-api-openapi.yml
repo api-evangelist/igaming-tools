@@ -192,81 +192,29 @@ paths:
         '429':
           $ref: '#/components/responses/Err429WithQuota'
 components:
+  headers:
+    XQuotaPaidBalance:
+      schema:
+        type: integer
+      description: Remaining paid balance (requests) for the caller.
+    XQuotaResetsAt:
+      schema:
+        type: string
+        format: date-time
+      description: ISO-8601 UTC timestamp of the next monthly quota reset.
+    RetryAfter:
+      schema:
+        type: integer
+      description: Seconds to wait before retrying.
+    XSyncTimestamp:
+      schema:
+        type: string
+      description: Start-of-request timestamp (ISO-8601 UTC). Returned on 200 and 304 responses of the endpoints that support incremental sync. Store it and pass it back as ?updated_since= on the next sync request — it is the start of this request, not its end, so changes made while you were paginating are not lost.
+    XQuotaFreeRemaining:
+      schema:
+        type: integer
+      description: Remaining monthly free-tier requests for the caller.
   schemas:
-    NewsArticleShort:
-      type: object
-      description: A news article as it appears in listings. The body is not included here — fetch the detail endpoint for it.
-      properties:
-        id:
-          type: string
-          format: uuid
-        title_en:
-          type: string
-        published_at:
-          type: string
-          format: date-time
-        discovered_at:
-          type: string
-          format: date-time
-        extraction_completed_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        language:
-          type: string
-        brand:
-          type:
-          - object
-          - 'null'
-          properties:
-            slug:
-              type: string
-            name:
-              type: string
-            kind:
-              type:
-              - string
-              - 'null'
-          readOnly: true
-        host:
-          type:
-          - string
-          - 'null'
-          readOnly: true
-        url:
-          type: string
-      required:
-      - brand
-      - discovered_at
-      - extraction_completed_at
-      - host
-      - id
-      - language
-      - published_at
-      - title_en
-      - url
-    PaginatedNewsArticleShortList:
-      type: object
-      required:
-      - results
-      properties:
-        next:
-          type:
-          - string
-          - 'null'
-          format: uri
-          description: Absolute URL of the next page, or null on the last page.
-        previous:
-          type:
-          - string
-          - 'null'
-          format: uri
-          description: Absolute URL of the previous page, or null on the first page.
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/NewsArticleShort'
     NewsArticleFull:
       type: object
       description: A news article with its full text. body_en is empty when the text could not be extracted or the content store is temporarily unavailable; body_unavailable_reason says which.
@@ -326,7 +274,122 @@ components:
       - published_at
       - title_en
       - url
+    PaginatedNewsArticleShortList:
+      type: object
+      required:
+      - results
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Absolute URL of the next page, or null on the last page.
+        previous:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Absolute URL of the previous page, or null on the first page.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/NewsArticleShort'
+    NewsArticleShort:
+      type: object
+      description: A news article as it appears in listings. The body is not included here — fetch the detail endpoint for it.
+      properties:
+        id:
+          type: string
+          format: uuid
+        title_en:
+          type: string
+        published_at:
+          type: string
+          format: date-time
+        discovered_at:
+          type: string
+          format: date-time
+        extraction_completed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        language:
+          type: string
+        brand:
+          type:
+          - object
+          - 'null'
+          properties:
+            slug:
+              type: string
+            name:
+              type: string
+            kind:
+              type:
+              - string
+              - 'null'
+          readOnly: true
+        host:
+          type:
+          - string
+          - 'null'
+          readOnly: true
+        url:
+          type: string
+      required:
+      - brand
+      - discovered_at
+      - extraction_completed_at
+      - host
+      - id
+      - language
+      - published_at
+      - title_en
+      - url
   responses:
+    Err401:
+      description: Unauthorized — missing or invalid API token.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Authentication credentials were not provided.
+                code: unauthorized
+    Err429WithQuota:
+      description: Too Many Requests — technical per-user rate limit exceeded.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Request was throttled. Try again later.
+                code: throttled
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Quota-Free-Remaining:
+          $ref: '#/components/headers/XQuotaFreeRemaining'
+        X-Quota-Paid-Balance:
+          $ref: '#/components/headers/XQuotaPaidBalance'
+        X-Quota-Resets-At:
+          $ref: '#/components/headers/XQuotaResetsAt'
     Err404:
       description: Not Found — resource does not exist or is not yet public.
       content:
@@ -368,47 +431,6 @@ components:
           $ref: '#/components/headers/XQuotaResetsAt'
         Retry-After:
           $ref: '#/components/headers/RetryAfter'
-    Err400:
-      description: Bad Request — invalid filter or parameter value.
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              detail:
-                type: string
-              code:
-                type: string
-          examples:
-            default:
-              value:
-                detail: Invalid value for parameter "ordering".
-                code: invalid_parameter
-    Err429WithQuota:
-      description: Too Many Requests — technical per-user rate limit exceeded.
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              detail:
-                type: string
-              code:
-                type: string
-          examples:
-            default:
-              value:
-                detail: Request was throttled. Try again later.
-                code: throttled
-      headers:
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Quota-Free-Remaining:
-          $ref: '#/components/headers/XQuotaFreeRemaining'
-        X-Quota-Paid-Balance:
-          $ref: '#/components/headers/XQuotaPaidBalance'
-        X-Quota-Resets-At:
-          $ref: '#/components/headers/XQuotaResetsAt'
     Err429:
       description: Too Many Requests — technical per-user rate limit exceeded.
       content:
@@ -428,8 +450,8 @@ components:
       headers:
         Retry-After:
           $ref: '#/components/headers/RetryAfter'
-    Err401:
-      description: Unauthorized — missing or invalid API token.
+    Err400:
+      description: Bad Request — invalid filter or parameter value.
       content:
         application/json:
           schema:
@@ -442,30 +464,8 @@ components:
           examples:
             default:
               value:
-                detail: Authentication credentials were not provided.
-                code: unauthorized
-  headers:
-    XSyncTimestamp:
-      schema:
-        type: string
-      description: Start-of-request timestamp (ISO-8601 UTC). Returned on 200 and 304 responses of the endpoints that support incremental sync. Store it and pass it back as ?updated_since= on the next sync request — it is the start of this request, not its end, so changes made while you were paginating are not lost.
-    XQuotaFreeRemaining:
-      schema:
-        type: integer
-      description: Remaining monthly free-tier requests for the caller.
-    XQuotaPaidBalance:
-      schema:
-        type: integer
-      description: Remaining paid balance (requests) for the caller.
-    XQuotaResetsAt:
-      schema:
-        type: string
-        format: date-time
-      description: ISO-8601 UTC timestamp of the next monthly quota reset.
-    RetryAfter:
-      schema:
-        type: integer
-      description: Seconds to wait before retrying.
+                detail: Invalid value for parameter "ordering".
+                code: invalid_parameter
   securitySchemes:
     TokenAuth:
       type: apiKey

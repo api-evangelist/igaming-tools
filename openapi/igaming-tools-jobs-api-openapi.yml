@@ -284,6 +284,45 @@ paths:
           $ref: '#/components/responses/Err429WithQuota'
 components:
   schemas:
+    RemoteModeEnum:
+      enum:
+      - on_site
+      - hybrid
+      - remote
+      type: string
+      description: '* `on_site` - On-site
+
+        * `hybrid` - Hybrid
+
+        * `remote` - Remote
+
+        * `` - Unknown'
+    PaginatedJobsListList:
+      type: object
+      required:
+      - results
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Absolute URL of the next page, or null on the last page.
+        previous:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Absolute URL of the previous page, or null on the first page.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/JobsList'
+    StatusPublicEnum:
+      type: string
+      enum:
+      - live
+      - closed
     SourceEnum:
       enum:
       - careers
@@ -292,30 +331,160 @@ components:
       description: '* `careers` - Careers
 
         * `linkedin` - LinkedIn'
-    VacancyLanguage:
-      type: object
-      description: One language requirement of a vacancy.
-      properties:
-        code:
-          type: string
-          description: ISO 639-1 lower-case language code.
-        level:
-          type: string
-          description: One of basic, intermediate, fluent, native — or empty when the vacancy does not state a level.
-      required:
-      - code
-      - level
-    TriStateEnum:
+    SalaryPeriodEnum:
       enum:
-      - 'yes'
-      - 'no'
-      - unknown
+      - year
+      - month
+      - day
+      - hour
       type: string
-      description: '* `yes` - Yes
+      description: '* `year` - Per year
 
-        * `no` - No
+        * `month` - Per month
 
-        * `unknown` - Unknown'
+        * `day` - Per day
+
+        * `hour` - Per hour
+
+        * `` - Unknown'
+    JobsList:
+      type: object
+      description: 'iGaming job vacancy card (list view). JSON key "url" is absent: use source_url instead.'
+      properties:
+        id:
+          type: string
+          format: uuid
+        source:
+          $ref: '#/components/schemas/SourceEnum'
+        title:
+          type: string
+        company_name:
+          type: string
+        company:
+          type:
+          - object
+          - 'null'
+          properties:
+            slug:
+              type: string
+            canonical_name:
+              type: string
+            country:
+              type: string
+          readOnly: true
+        location_country:
+          type: string
+        location_city:
+          type: string
+        city:
+          type:
+          - object
+          - 'null'
+          properties:
+            slug:
+              type: string
+            canonical_name:
+              type: string
+            country:
+              type: string
+          readOnly: true
+        remote_mode:
+          oneOf:
+          - $ref: '#/components/schemas/RemoteModeEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        employment_type:
+          oneOf:
+          - $ref: '#/components/schemas/EmploymentTypeEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        seniority:
+          oneOf:
+          - $ref: '#/components/schemas/SeniorityEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        igaming_segment:
+          oneOf:
+          - $ref: '#/components/schemas/IgamingSegmentEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        salary_min:
+          type:
+          - string
+          - 'null'
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        salary_max:
+          type:
+          - string
+          - 'null'
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        salary_currency:
+          type: string
+        salary_period:
+          oneOf:
+          - $ref: '#/components/schemas/SalaryPeriodEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        salary_is_disclosed:
+          type: boolean
+        posted_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        last_seen_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        status_public:
+          allOf:
+          - $ref: '#/components/schemas/StatusPublicEnum'
+          readOnly: true
+        closed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          readOnly: true
+        closed_reason:
+          allOf:
+          - $ref: '#/components/schemas/ClosedReasonEnum'
+          readOnly: true
+        apply_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          readOnly: true
+        source_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          readOnly: true
+      required:
+      - apply_url
+      - city
+      - closed_at
+      - closed_reason
+      - company
+      - company_name
+      - employment_type
+      - id
+      - igaming_segment
+      - last_seen_at
+      - location_city
+      - location_country
+      - posted_at
+      - remote_mode
+      - salary_currency
+      - salary_is_disclosed
+      - salary_max
+      - salary_min
+      - salary_period
+      - seniority
+      - source
+      - source_url
+      - status_public
+      - title
     SeniorityEnum:
       enum:
       - junior
@@ -338,17 +507,23 @@ components:
         * `c_level` - C-level
 
         * `` - Unknown'
-    RemoteModeEnum:
+    EmploymentTypeEnum:
       enum:
-      - on_site
-      - hybrid
-      - remote
+      - full_time
+      - part_time
+      - contract
+      - freelance
+      - internship
       type: string
-      description: '* `on_site` - On-site
+      description: '* `full_time` - Full-time
 
-        * `hybrid` - Hybrid
+        * `part_time` - Part-time
 
-        * `remote` - Remote
+        * `contract` - Contract
+
+        * `freelance` - Freelance
+
+        * `internship` - Internship
 
         * `` - Unknown'
     JobsDetail:
@@ -634,216 +809,41 @@ components:
         * `payment_provider` - Payment Provider
 
         * `` - Unknown'
-    SalaryPeriodEnum:
+    TriStateEnum:
       enum:
-      - year
-      - month
-      - day
-      - hour
+      - 'yes'
+      - 'no'
+      - unknown
       type: string
-      description: '* `year` - Per year
+      description: '* `yes` - Yes
 
-        * `month` - Per month
+        * `no` - No
 
-        * `day` - Per day
-
-        * `hour` - Per hour
-
-        * `` - Unknown'
-    PaginatedJobsListList:
-      type: object
-      required:
-      - results
-      properties:
-        next:
-          type:
-          - string
-          - 'null'
-          format: uri
-          description: Absolute URL of the next page, or null on the last page.
-        previous:
-          type:
-          - string
-          - 'null'
-          format: uri
-          description: Absolute URL of the previous page, or null on the first page.
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/JobsList'
+        * `unknown` - Unknown'
     ClosedReasonEnum:
       type: string
       enum:
       - filled
       - closed
       - expired
-    StatusPublicEnum:
-      type: string
-      enum:
-      - live
-      - closed
-    EmploymentTypeEnum:
-      enum:
-      - full_time
-      - part_time
-      - contract
-      - freelance
-      - internship
-      type: string
-      description: '* `full_time` - Full-time
-
-        * `part_time` - Part-time
-
-        * `contract` - Contract
-
-        * `freelance` - Freelance
-
-        * `internship` - Internship
-
-        * `` - Unknown'
+    VacancyLanguage:
+      type: object
+      description: One language requirement of a vacancy.
+      properties:
+        code:
+          type: string
+          description: ISO 639-1 lower-case language code.
+        level:
+          type: string
+          description: One of basic, intermediate, fluent, native — or empty when the vacancy does not state a level.
+      required:
+      - code
+      - level
     BlankEnum:
       enum:
       - ''
-    JobsList:
-      type: object
-      description: 'iGaming job vacancy card (list view). JSON key "url" is absent: use source_url instead.'
-      properties:
-        id:
-          type: string
-          format: uuid
-        source:
-          $ref: '#/components/schemas/SourceEnum'
-        title:
-          type: string
-        company_name:
-          type: string
-        company:
-          type:
-          - object
-          - 'null'
-          properties:
-            slug:
-              type: string
-            canonical_name:
-              type: string
-            country:
-              type: string
-          readOnly: true
-        location_country:
-          type: string
-        location_city:
-          type: string
-        city:
-          type:
-          - object
-          - 'null'
-          properties:
-            slug:
-              type: string
-            canonical_name:
-              type: string
-            country:
-              type: string
-          readOnly: true
-        remote_mode:
-          oneOf:
-          - $ref: '#/components/schemas/RemoteModeEnum'
-          - $ref: '#/components/schemas/BlankEnum'
-        employment_type:
-          oneOf:
-          - $ref: '#/components/schemas/EmploymentTypeEnum'
-          - $ref: '#/components/schemas/BlankEnum'
-        seniority:
-          oneOf:
-          - $ref: '#/components/schemas/SeniorityEnum'
-          - $ref: '#/components/schemas/BlankEnum'
-        igaming_segment:
-          oneOf:
-          - $ref: '#/components/schemas/IgamingSegmentEnum'
-          - $ref: '#/components/schemas/BlankEnum'
-        salary_min:
-          type:
-          - string
-          - 'null'
-          format: decimal
-          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
-        salary_max:
-          type:
-          - string
-          - 'null'
-          format: decimal
-          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
-        salary_currency:
-          type: string
-        salary_period:
-          oneOf:
-          - $ref: '#/components/schemas/SalaryPeriodEnum'
-          - $ref: '#/components/schemas/BlankEnum'
-        salary_is_disclosed:
-          type: boolean
-        posted_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        last_seen_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        status_public:
-          allOf:
-          - $ref: '#/components/schemas/StatusPublicEnum'
-          readOnly: true
-        closed_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-          readOnly: true
-        closed_reason:
-          allOf:
-          - $ref: '#/components/schemas/ClosedReasonEnum'
-          readOnly: true
-        apply_url:
-          type:
-          - string
-          - 'null'
-          format: uri
-          readOnly: true
-        source_url:
-          type:
-          - string
-          - 'null'
-          format: uri
-          readOnly: true
-      required:
-      - apply_url
-      - city
-      - closed_at
-      - closed_reason
-      - company
-      - company_name
-      - employment_type
-      - id
-      - igaming_segment
-      - last_seen_at
-      - location_city
-      - location_country
-      - posted_at
-      - remote_mode
-      - salary_currency
-      - salary_is_disclosed
-      - salary_max
-      - salary_min
-      - salary_period
-      - seniority
-      - source
-      - source_url
-      - status_public
-      - title
   responses:
-    Err429:
+    Err429WithQuota:
       description: Too Many Requests — technical per-user rate limit exceeded.
       content:
         application/json:
@@ -862,6 +862,28 @@ components:
       headers:
         Retry-After:
           $ref: '#/components/headers/RetryAfter'
+        X-Quota-Free-Remaining:
+          $ref: '#/components/headers/XQuotaFreeRemaining'
+        X-Quota-Paid-Balance:
+          $ref: '#/components/headers/XQuotaPaidBalance'
+        X-Quota-Resets-At:
+          $ref: '#/components/headers/XQuotaResetsAt'
+    Err400:
+      description: Bad Request — invalid filter or parameter value.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Invalid value for parameter "ordering".
+                code: invalid_parameter
     Err402:
       description: Payment Required — billing quota exhausted (monthly free tier or paid balance depleted).
       content:
@@ -903,7 +925,23 @@ components:
               value:
                 detail: Authentication credentials were not provided.
                 code: unauthorized
-    Err429WithQuota:
+    Err404:
+      description: Not Found — resource does not exist or is not yet public.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Not found.
+                code: not_found
+    Err429:
       description: Too Many Requests — technical per-user rate limit exceeded.
       content:
         application/json:
@@ -922,53 +960,16 @@ components:
       headers:
         Retry-After:
           $ref: '#/components/headers/RetryAfter'
-        X-Quota-Free-Remaining:
-          $ref: '#/components/headers/XQuotaFreeRemaining'
-        X-Quota-Paid-Balance:
-          $ref: '#/components/headers/XQuotaPaidBalance'
-        X-Quota-Resets-At:
-          $ref: '#/components/headers/XQuotaResetsAt'
-    Err404:
-      description: Not Found — resource does not exist or is not yet public.
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              detail:
-                type: string
-              code:
-                type: string
-          examples:
-            default:
-              value:
-                detail: Not found.
-                code: not_found
-    Err400:
-      description: Bad Request — invalid filter or parameter value.
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              detail:
-                type: string
-              code:
-                type: string
-          examples:
-            default:
-              value:
-                detail: Invalid value for parameter "ordering".
-                code: invalid_parameter
   headers:
     RetryAfter:
       schema:
         type: integer
       description: Seconds to wait before retrying.
-    XSyncTimestamp:
+    XQuotaResetsAt:
       schema:
         type: string
-      description: Start-of-request timestamp (ISO-8601 UTC). Returned on 200 and 304 responses of the endpoints that support incremental sync. Store it and pass it back as ?updated_since= on the next sync request — it is the start of this request, not its end, so changes made while you were paginating are not lost.
+        format: date-time
+      description: ISO-8601 UTC timestamp of the next monthly quota reset.
     XQuotaFreeRemaining:
       schema:
         type: integer
@@ -977,11 +978,10 @@ components:
       schema:
         type: integer
       description: Remaining paid balance (requests) for the caller.
-    XQuotaResetsAt:
+    XSyncTimestamp:
       schema:
         type: string
-        format: date-time
-      description: ISO-8601 UTC timestamp of the next monthly quota reset.
+      description: Start-of-request timestamp (ISO-8601 UTC). Returned on 200 and 304 responses of the endpoints that support incremental sync. Store it and pass it back as ?updated_since= on the next sync request — it is the start of this request, not its end, so changes made while you were paginating are not lost.
   securitySchemes:
     TokenAuth:
       type: apiKey

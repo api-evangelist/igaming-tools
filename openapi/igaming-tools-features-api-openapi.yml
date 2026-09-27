@@ -76,54 +76,41 @@ paths:
         '400':
           $ref: '#/components/responses/Err400'
 components:
-  schemas:
-    TaxonomyDirectoryItem:
-      type: object
-      description: Taxonomy directory entry (theme or feature) with alternative spellings.
-      properties:
-        slug:
-          type: string
-        name:
-          type: string
-        slots_count:
-          type: integer
-        aliases:
-          type: array
-          items:
-            type: string
-          description: aliases are alternative spellings for matching a user's query to this slug (e.g. 'egypt' -> 'egyptian'). Filter by slug only — aliases are not a second filter key.
-          readOnly: true
-      required:
-      - aliases
-      - name
-      - slots_count
-      - slug
-    TaxonomyDirectoryPage:
-      type: object
-      description: Cursor-paginated page of a taxonomy directory (themes or features). count is the total number of entries across all pages.
-      properties:
-        count:
-          type: integer
-        next:
-          type:
-          - string
-          - 'null'
-          description: Absolute URL of the next page, or null on the last page.
-        previous:
-          type:
-          - string
-          - 'null'
-          description: Absolute URL of the previous page, or null on the first page.
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/TaxonomyDirectoryItem'
-      required:
-      - count
-      - next
-      - previous
-      - results
+  headers:
+    XQuotaPaidBalance:
+      schema:
+        type: integer
+      description: Remaining paid balance (requests) for the caller.
+    XQuotaResetsAt:
+      schema:
+        type: string
+        format: date-time
+      description: ISO-8601 UTC timestamp of the next monthly quota reset.
+    RetryAfter:
+      schema:
+        type: integer
+      description: Seconds to wait before retrying.
+    XQuotaFreeRemaining:
+      schema:
+        type: integer
+      description: Remaining monthly free-tier requests for the caller.
   responses:
+    Err401:
+      description: Unauthorized — missing or invalid API token.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Authentication credentials were not provided.
+                code: unauthorized
     Err402:
       description: Payment Required — billing quota exhausted (monthly free tier or paid balance depleted).
       content:
@@ -149,22 +136,6 @@ components:
           $ref: '#/components/headers/XQuotaResetsAt'
         Retry-After:
           $ref: '#/components/headers/RetryAfter'
-    Err400:
-      description: Bad Request — invalid filter or parameter value.
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              detail:
-                type: string
-              code:
-                type: string
-          examples:
-            default:
-              value:
-                detail: Invalid value for parameter "ordering".
-                code: invalid_parameter
     Err429:
       description: Too Many Requests — technical per-user rate limit exceeded.
       content:
@@ -184,8 +155,8 @@ components:
       headers:
         Retry-After:
           $ref: '#/components/headers/RetryAfter'
-    Err401:
-      description: Unauthorized — missing or invalid API token.
+    Err400:
+      description: Bad Request — invalid filter or parameter value.
       content:
         application/json:
           schema:
@@ -198,26 +169,55 @@ components:
           examples:
             default:
               value:
-                detail: Authentication credentials were not provided.
-                code: unauthorized
-  headers:
-    XQuotaFreeRemaining:
-      schema:
-        type: integer
-      description: Remaining monthly free-tier requests for the caller.
-    XQuotaPaidBalance:
-      schema:
-        type: integer
-      description: Remaining paid balance (requests) for the caller.
-    XQuotaResetsAt:
-      schema:
-        type: string
-        format: date-time
-      description: ISO-8601 UTC timestamp of the next monthly quota reset.
-    RetryAfter:
-      schema:
-        type: integer
-      description: Seconds to wait before retrying.
+                detail: Invalid value for parameter "ordering".
+                code: invalid_parameter
+  schemas:
+    TaxonomyDirectoryPage:
+      type: object
+      description: Cursor-paginated page of a taxonomy directory (themes or features). count is the total number of entries across all pages.
+      properties:
+        count:
+          type: integer
+        next:
+          type:
+          - string
+          - 'null'
+          description: Absolute URL of the next page, or null on the last page.
+        previous:
+          type:
+          - string
+          - 'null'
+          description: Absolute URL of the previous page, or null on the first page.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaxonomyDirectoryItem'
+      required:
+      - count
+      - next
+      - previous
+      - results
+    TaxonomyDirectoryItem:
+      type: object
+      description: Taxonomy directory entry (theme or feature) with alternative spellings.
+      properties:
+        slug:
+          type: string
+        name:
+          type: string
+        slots_count:
+          type: integer
+        aliases:
+          type: array
+          items:
+            type: string
+          description: aliases are alternative spellings for matching a user's query to this slug (e.g. 'egypt' -> 'egyptian'). Filter by slug only — aliases are not a second filter key.
+          readOnly: true
+      required:
+      - aliases
+      - name
+      - slots_count
+      - slug
   securitySchemes:
     TokenAuth:
       type: apiKey

@@ -906,14 +906,19 @@ paths:
           $ref: '#/components/responses/Err400'
 components:
   schemas:
-    SourceEnum:
+    RemoteModeEnum:
       enum:
-      - careers
-      - linkedin
+      - on_site
+      - hybrid
+      - remote
       type: string
-      description: '* `careers` - Careers
+      description: '* `on_site` - On-site
 
-        * `linkedin` - LinkedIn'
+        * `hybrid` - Hybrid
+
+        * `remote` - Remote
+
+        * `` - Unknown'
     PaginatedBrandShortList:
       type: object
       required:
@@ -935,248 +940,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/BrandShort'
-    TrendEnum:
-      enum:
-      - growing
-      - declining
-      - flat
-      type: string
-      description: '* `growing` - growing
-
-        * `declining` - declining
-
-        * `flat` - flat'
-    SeniorityEnum:
-      enum:
-      - junior
-      - mid
-      - senior
-      - lead
-      - head
-      - c_level
-      type: string
-      description: '* `junior` - Junior
-
-        * `mid` - Mid
-
-        * `senior` - Senior
-
-        * `lead` - Lead
-
-        * `head` - Head
-
-        * `c_level` - C-level
-
-        * `` - Unknown'
-    ProviderDemandMarket:
-      type: object
-      description: One market inside the provider demand block.
-      properties:
-        country:
-          type: string
-        country_iso:
-          type: string
-        flag:
-          type: string
-        volume:
-          type: integer
-        series:
-          type: array
-          items:
-            type: integer
-      required:
-      - country
-      - country_iso
-      - flag
-      - series
-      - volume
-    SlotListItem:
-      type: object
-      description: 'Compact slot listing item. thumbnail/thumbnail_url: CDN URL of first logo/preview screenshot. rtp_default: Decimal as string or null. mechanic: bet mechanic type.'
-      properties:
-        slug:
-          type: string
-        name:
-          type: string
-        provider:
-          type: object
-          description: The provider that released this slot.
-          properties:
-            slug:
-              type: string
-            name:
-              type: string
-          required:
-          - slug
-          - name
-          readOnly: true
-        game_category:
-          type: string
-        game_subtype:
-          type:
-          - string
-          - 'null'
-        rtp_default:
-          type:
-          - string
-          - 'null'
-          description: Decimal → str|null.
-          readOnly: true
-        volatility:
-          type:
-          - string
-          - 'null'
-        max_win:
-          type:
-          - integer
-          - 'null'
-        mechanic:
-          type:
-          - string
-          - 'null'
-        mechanic_value:
-          type:
-          - integer
-          - 'null'
-        release_date:
-          type:
-          - string
-          - 'null'
-          format: date
-        release_date_precision:
-          type: string
-        thumbnail_url:
-          type:
-          - string
-          - 'null'
-          description: 'CDN-URL of the first screenshot of type logo or preview.
-
-
-            Logo wins when both are present.'
-          readOnly: true
-        thumbnail:
-          type:
-          - object
-          - 'null'
-          description: Asset-versioned thumbnail object {url, key, version} or null.
-          properties:
-            url:
-              type: string
-              format: uri
-            key:
-              type: string
-              description: Storage key — the public path component of the URL.
-            version:
-              type:
-              - string
-              - 'null'
-              description: SHA-256 checksum of the image.
-          readOnly: true
-        volume_12m:
-          type:
-          - integer
-          - 'null'
-          readOnly: true
-        trend:
-          allOf:
-          - $ref: '#/components/schemas/TrendEnum'
-          readOnly: true
-        demo_url:
-          type:
-          - string
-          - 'null'
-          format: uri
-          description: Demo-embed URL (same format as detail assets.demo.embed_url) or null.
-          readOnly: true
-        updated_at:
-          type: string
-          format: date-time
-          description: When this record last changed on our side. This is the field ?updated_since= filters and orders by.
-      required:
-      - demo_url
-      - game_category
-      - game_subtype
-      - max_win
-      - mechanic
-      - mechanic_value
-      - name
-      - provider
-      - release_date
-      - release_date_precision
-      - rtp_default
-      - slug
-      - thumbnail
-      - thumbnail_url
-      - trend
-      - updated_at
-      - volatility
-      - volume_12m
-    RemoteModeEnum:
-      enum:
-      - on_site
-      - hybrid
-      - remote
-      type: string
-      description: '* `on_site` - On-site
-
-        * `hybrid` - Hybrid
-
-        * `remote` - Remote
-
-        * `` - Unknown'
-    NewsArticleShort:
-      type: object
-      description: A news article as it appears in listings. The body is not included here — fetch the detail endpoint for it.
-      properties:
-        id:
-          type: string
-          format: uuid
-        title_en:
-          type: string
-        published_at:
-          type: string
-          format: date-time
-        discovered_at:
-          type: string
-          format: date-time
-        extraction_completed_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        language:
-          type: string
-        brand:
-          type:
-          - object
-          - 'null'
-          properties:
-            slug:
-              type: string
-            name:
-              type: string
-            kind:
-              type:
-              - string
-              - 'null'
-          readOnly: true
-        host:
-          type:
-          - string
-          - 'null'
-          readOnly: true
-        url:
-          type: string
-      required:
-      - brand
-      - discovered_at
-      - extraction_completed_at
-      - host
-      - id
-      - language
-      - published_at
-      - title_en
-      - url
     PaginatedSlotListItemList:
       type: object
       required:
@@ -1198,127 +961,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SlotListItem'
-    IgamingSegmentEnum:
-      enum:
-      - sportsbook
-      - casino
-      - poker
-      - lottery
-      - esports
-      - affiliate
-      - platform_provider
-      - game_studio
-      - regulator
-      - payment_provider
-      type: string
-      description: '* `sportsbook` - Sportsbook
-
-        * `casino` - Casino
-
-        * `poker` - Poker
-
-        * `lottery` - Lottery
-
-        * `esports` - Esports
-
-        * `affiliate` - Affiliate
-
-        * `platform_provider` - Platform Provider
-
-        * `game_studio` - Game Studio
-
-        * `regulator` - Regulator
-
-        * `payment_provider` - Payment Provider
-
-        * `` - Unknown'
-    SalaryPeriodEnum:
-      enum:
-      - year
-      - month
-      - day
-      - hour
-      type: string
-      description: '* `year` - Per year
-
-        * `month` - Per month
-
-        * `day` - Per day
-
-        * `hour` - Per hour
-
-        * `` - Unknown'
-    ProviderDemandTopSlot:
-      type: object
-      description: One slot in the provider's demand-ranked top list.
-      properties:
-        slug:
-          type: string
-        name:
-          type: string
-        latest_volume:
-          type: integer
-        sparkline:
-          type: array
-          items:
-            type: integer
-        demo_url:
-          type:
-          - string
-          - 'null'
-          format: uri
-      required:
-      - demo_url
-      - latest_volume
-      - name
-      - slug
-      - sparkline
-    ProviderDemandMetrics:
-      type: object
-      description: Provider-level demand metrics. Empty object when no snapshot exists yet.
-      properties:
-        total_volume:
-          type: integer
-        peak_volume:
-          type: integer
-        yoy_pct:
-          type:
-          - number
-          - 'null'
-          format: double
-        top_query:
-          type:
-          - string
-          - 'null'
-        series_24m:
-          type: array
-          items:
-            type: integer
-          description: 24 monthly volumes, oldest first.
-        markets:
-          type: array
-          items:
-            $ref: '#/components/schemas/ProviderDemandMarket'
-    ProviderDemand:
-      type: object
-      description: 'Provider search demand snapshot. computed_at: when the snapshot was computed. provider: volume/trend metrics. top_slots: demand-ranked public slots. Empty snapshot → 200 with nulls/empty (not 404).'
-      properties:
-        computed_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        provider:
-          $ref: '#/components/schemas/ProviderDemandMetrics'
-        top_slots:
-          type: array
-          items:
-            $ref: '#/components/schemas/ProviderDemandTopSlot'
-      required:
-      - computed_at
-      - provider
-      - top_slots
-    PaginatedJobsListList:
+    PaginatedNewsArticleShortList:
       type: object
       required:
       - results
@@ -1338,7 +981,7 @@ components:
         results:
           type: array
           items:
-            $ref: '#/components/schemas/JobsList'
+            $ref: '#/components/schemas/NewsArticleShort'
     ProviderDetail:
       type: object
       description: Full slot provider profile. Includes firmographics, assets (logo), company block (hq/offices/licenses/contacts), counts (slots/jobs/news/team/has_demand), and HATEOAS sub-resource links. about is sanitized HTML, never raw text.
@@ -1558,17 +1201,263 @@ components:
       - slug
       - updated_at
       - verified_at
-    ClosedReasonEnum:
-      type: string
+    ProviderDemandMetrics:
+      type: object
+      description: Provider-level demand metrics. Empty object when no snapshot exists yet.
+      properties:
+        total_volume:
+          type: integer
+        peak_volume:
+          type: integer
+        yoy_pct:
+          type:
+          - number
+          - 'null'
+          format: double
+        top_query:
+          type:
+          - string
+          - 'null'
+        series_24m:
+          type: array
+          items:
+            type: integer
+          description: 24 monthly volumes, oldest first.
+        markets:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProviderDemandMarket'
+    PaginatedJobsListList:
+      type: object
+      required:
+      - results
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Absolute URL of the next page, or null on the last page.
+        previous:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Absolute URL of the previous page, or null on the first page.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/JobsList'
+    SlotListItem:
+      type: object
+      description: 'Compact slot listing item. thumbnail/thumbnail_url: CDN URL of first logo/preview screenshot. rtp_default: Decimal as string or null. mechanic: bet mechanic type.'
+      properties:
+        slug:
+          type: string
+        name:
+          type: string
+        provider:
+          type: object
+          description: The provider that released this slot.
+          properties:
+            slug:
+              type: string
+            name:
+              type: string
+          required:
+          - slug
+          - name
+          readOnly: true
+        game_category:
+          type: string
+        game_subtype:
+          type:
+          - string
+          - 'null'
+        rtp_default:
+          type:
+          - string
+          - 'null'
+          description: Decimal → str|null.
+          readOnly: true
+        volatility:
+          type:
+          - string
+          - 'null'
+        max_win:
+          type:
+          - integer
+          - 'null'
+        mechanic:
+          type:
+          - string
+          - 'null'
+        mechanic_value:
+          type:
+          - integer
+          - 'null'
+        release_date:
+          type:
+          - string
+          - 'null'
+          format: date
+        release_date_precision:
+          type: string
+        thumbnail_url:
+          type:
+          - string
+          - 'null'
+          description: 'CDN-URL of the first screenshot of type logo or preview.
+
+
+            Logo wins when both are present.'
+          readOnly: true
+        thumbnail:
+          type:
+          - object
+          - 'null'
+          description: Asset-versioned thumbnail object {url, key, version} or null.
+          properties:
+            url:
+              type: string
+              format: uri
+            key:
+              type: string
+              description: Storage key — the public path component of the URL.
+            version:
+              type:
+              - string
+              - 'null'
+              description: SHA-256 checksum of the image.
+          readOnly: true
+        volume_12m:
+          type:
+          - integer
+          - 'null'
+          readOnly: true
+        trend:
+          allOf:
+          - $ref: '#/components/schemas/TrendEnum'
+          readOnly: true
+        demo_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Demo-embed URL (same format as detail assets.demo.embed_url) or null.
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          description: When this record last changed on our side. This is the field ?updated_since= filters and orders by.
+      required:
+      - demo_url
+      - game_category
+      - game_subtype
+      - max_win
+      - mechanic
+      - mechanic_value
+      - name
+      - provider
+      - release_date
+      - release_date_precision
+      - rtp_default
+      - slug
+      - thumbnail
+      - thumbnail_url
+      - trend
+      - updated_at
+      - volatility
+      - volume_12m
+    ProviderDemandTopSlot:
+      type: object
+      description: One slot in the provider's demand-ranked top list.
+      properties:
+        slug:
+          type: string
+        name:
+          type: string
+        latest_volume:
+          type: integer
+        sparkline:
+          type: array
+          items:
+            type: integer
+        demo_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+      required:
+      - demo_url
+      - latest_volume
+      - name
+      - slug
+      - sparkline
+    TrendEnum:
       enum:
-      - filled
-      - closed
-      - expired
-    StatusPublicEnum:
+      - growing
+      - declining
+      - flat
       type: string
-      enum:
-      - live
-      - closed
+      description: '* `growing` - growing
+
+        * `declining` - declining
+
+        * `flat` - flat'
+    NewsArticleShort:
+      type: object
+      description: A news article as it appears in listings. The body is not included here — fetch the detail endpoint for it.
+      properties:
+        id:
+          type: string
+          format: uuid
+        title_en:
+          type: string
+        published_at:
+          type: string
+          format: date-time
+        discovered_at:
+          type: string
+          format: date-time
+        extraction_completed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        language:
+          type: string
+        brand:
+          type:
+          - object
+          - 'null'
+          properties:
+            slug:
+              type: string
+            name:
+              type: string
+            kind:
+              type:
+              - string
+              - 'null'
+          readOnly: true
+        host:
+          type:
+          - string
+          - 'null'
+          readOnly: true
+        url:
+          type: string
+      required:
+      - brand
+      - discovered_at
+      - extraction_completed_at
+      - host
+      - id
+      - language
+      - published_at
+      - title_en
+      - url
     BrandShort:
       type: object
       description: 'Compact brand entry for the provider and regulator listings: slug, kind, name, aliases, hosts_count, news_count. Structured profile fields are in the detail endpoint, not here.'
@@ -1599,49 +1488,35 @@ components:
       - name
       - news_count
       - slug
-    EmploymentTypeEnum:
-      enum:
-      - full_time
-      - part_time
-      - contract
-      - freelance
-      - internship
+    StatusPublicEnum:
       type: string
-      description: '* `full_time` - Full-time
+      enum:
+      - live
+      - closed
+    SourceEnum:
+      enum:
+      - careers
+      - linkedin
+      type: string
+      description: '* `careers` - Careers
 
-        * `part_time` - Part-time
+        * `linkedin` - LinkedIn'
+    SalaryPeriodEnum:
+      enum:
+      - year
+      - month
+      - day
+      - hour
+      type: string
+      description: '* `year` - Per year
 
-        * `contract` - Contract
+        * `month` - Per month
 
-        * `freelance` - Freelance
+        * `day` - Per day
 
-        * `internship` - Internship
+        * `hour` - Per hour
 
         * `` - Unknown'
-    PaginatedNewsArticleShortList:
-      type: object
-      required:
-      - results
-      properties:
-        next:
-          type:
-          - string
-          - 'null'
-          format: uri
-          description: Absolute URL of the next page, or null on the last page.
-        previous:
-          type:
-          - string
-          - 'null'
-          format: uri
-          description: Absolute URL of the previous page, or null on the first page.
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/NewsArticleShort'
-    BlankEnum:
-      enum:
-      - ''
     JobsList:
       type: object
       description: 'iGaming job vacancy card (list view). JSON key "url" is absent: use source_url instead.'
@@ -1780,9 +1655,134 @@ components:
       - source_url
       - status_public
       - title
+    SeniorityEnum:
+      enum:
+      - junior
+      - mid
+      - senior
+      - lead
+      - head
+      - c_level
+      type: string
+      description: '* `junior` - Junior
+
+        * `mid` - Mid
+
+        * `senior` - Senior
+
+        * `lead` - Lead
+
+        * `head` - Head
+
+        * `c_level` - C-level
+
+        * `` - Unknown'
+    EmploymentTypeEnum:
+      enum:
+      - full_time
+      - part_time
+      - contract
+      - freelance
+      - internship
+      type: string
+      description: '* `full_time` - Full-time
+
+        * `part_time` - Part-time
+
+        * `contract` - Contract
+
+        * `freelance` - Freelance
+
+        * `internship` - Internship
+
+        * `` - Unknown'
+    IgamingSegmentEnum:
+      enum:
+      - sportsbook
+      - casino
+      - poker
+      - lottery
+      - esports
+      - affiliate
+      - platform_provider
+      - game_studio
+      - regulator
+      - payment_provider
+      type: string
+      description: '* `sportsbook` - Sportsbook
+
+        * `casino` - Casino
+
+        * `poker` - Poker
+
+        * `lottery` - Lottery
+
+        * `esports` - Esports
+
+        * `affiliate` - Affiliate
+
+        * `platform_provider` - Platform Provider
+
+        * `game_studio` - Game Studio
+
+        * `regulator` - Regulator
+
+        * `payment_provider` - Payment Provider
+
+        * `` - Unknown'
+    ClosedReasonEnum:
+      type: string
+      enum:
+      - filled
+      - closed
+      - expired
+    ProviderDemandMarket:
+      type: object
+      description: One market inside the provider demand block.
+      properties:
+        country:
+          type: string
+        country_iso:
+          type: string
+        flag:
+          type: string
+        volume:
+          type: integer
+        series:
+          type: array
+          items:
+            type: integer
+      required:
+      - country
+      - country_iso
+      - flag
+      - series
+      - volume
+    ProviderDemand:
+      type: object
+      description: 'Provider search demand snapshot. computed_at: when the snapshot was computed. provider: volume/trend metrics. top_slots: demand-ranked public slots. Empty snapshot → 200 with nulls/empty (not 404).'
+      properties:
+        computed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        provider:
+          $ref: '#/components/schemas/ProviderDemandMetrics'
+        top_slots:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProviderDemandTopSlot'
+      required:
+      - computed_at
+      - provider
+      - top_slots
+    BlankEnum:
+      enum:
+      - ''
   responses:
-    Err429:
-      description: Too Many Requests — technical per-user rate limit exceeded.
+    Err400:
+      description: Bad Request — invalid filter or parameter value.
       content:
         application/json:
           schema:
@@ -1795,11 +1795,8 @@ components:
           examples:
             default:
               value:
-                detail: Request was throttled. Try again later.
-                code: throttled
-      headers:
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
+                detail: Invalid value for parameter "ordering".
+                code: invalid_parameter
     Err402:
       description: Payment Required — billing quota exhausted (monthly free tier or paid balance depleted).
       content:
@@ -1857,8 +1854,8 @@ components:
               value:
                 detail: Not found.
                 code: not_found
-    Err400:
-      description: Bad Request — invalid filter or parameter value.
+    Err429:
+      description: Too Many Requests — technical per-user rate limit exceeded.
       content:
         application/json:
           schema:
@@ -1871,17 +1868,21 @@ components:
           examples:
             default:
               value:
-                detail: Invalid value for parameter "ordering".
-                code: invalid_parameter
+                detail: Request was throttled. Try again later.
+                code: throttled
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
   headers:
     RetryAfter:
       schema:
         type: integer
       description: Seconds to wait before retrying.
-    XSyncTimestamp:
+    XQuotaResetsAt:
       schema:
         type: string
-      description: Start-of-request timestamp (ISO-8601 UTC). Returned on 200 and 304 responses of the endpoints that support incremental sync. Store it and pass it back as ?updated_since= on the next sync request — it is the start of this request, not its end, so changes made while you were paginating are not lost.
+        format: date-time
+      description: ISO-8601 UTC timestamp of the next monthly quota reset.
     XQuotaFreeRemaining:
       schema:
         type: integer
@@ -1890,15 +1891,14 @@ components:
       schema:
         type: integer
       description: Remaining paid balance (requests) for the caller.
-    XQuotaResetsAt:
-      schema:
-        type: string
-        format: date-time
-      description: ISO-8601 UTC timestamp of the next monthly quota reset.
     ETag:
       schema:
         type: string
       description: Opaque validator for conditional requests. Pass it back via If-None-Match on the next request to this endpoint to receive 304 when nothing changed.
+    XSyncTimestamp:
+      schema:
+        type: string
+      description: Start-of-request timestamp (ISO-8601 UTC). Returned on 200 and 304 responses of the endpoints that support incremental sync. Store it and pass it back as ?updated_since= on the next sync request — it is the start of this request, not its end, so changes made while you were paginating are not lost.
   securitySchemes:
     TokenAuth:
       type: apiKey
