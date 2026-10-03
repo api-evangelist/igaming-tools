@@ -105,7 +105,139 @@ paths:
         '404':
           $ref: '#/components/responses/Err404'
 components:
+  responses:
+    Err400:
+      description: Bad Request — invalid filter or parameter value.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Invalid value for parameter "ordering".
+                code: invalid_parameter
+    Err429:
+      description: Too Many Requests — technical per-user rate limit exceeded.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Request was throttled. Try again later.
+                code: throttled
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+    Err404:
+      description: Not Found — resource does not exist or is not yet public.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Not found.
+                code: not_found
+    Err401:
+      description: Unauthorized — missing or invalid API token.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Authentication credentials were not provided.
+                code: unauthorized
+    Err402:
+      description: Payment Required — billing quota exhausted (monthly free tier or paid balance depleted).
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Quota exhausted. Top up or wait until the monthly reset.
+                code: quota_exhausted
+      headers:
+        X-Quota-Free-Remaining:
+          $ref: '#/components/headers/XQuotaFreeRemaining'
+        X-Quota-Paid-Balance:
+          $ref: '#/components/headers/XQuotaPaidBalance'
+        X-Quota-Resets-At:
+          $ref: '#/components/headers/XQuotaResetsAt'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+  headers:
+    XQuotaResetsAt:
+      schema:
+        type: string
+        format: date-time
+      description: ISO-8601 UTC timestamp of the next monthly quota reset.
+    RetryAfter:
+      schema:
+        type: integer
+      description: Seconds to wait before retrying.
+    XQuotaFreeRemaining:
+      schema:
+        type: integer
+      description: Remaining monthly free-tier requests for the caller.
+    XQuotaPaidBalance:
+      schema:
+        type: integer
+      description: Remaining paid balance (requests) for the caller.
   schemas:
+    PaginatedSourceList:
+      type: object
+      required:
+      - results
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Absolute URL of the next page, or null on the last page.
+        previous:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Absolute URL of the previous page, or null on the first page.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Source'
     Source:
       type: object
       description: 'A news source: one host, with brand attribution and freshness. host is the full domain; brand is {slug, kind, name} or null; articles_count_30d counts articles published in the last 30 days; last_extracted_at is the most recent successful extraction, or null.'
@@ -138,138 +270,6 @@ components:
       - brand
       - host
       - last_extracted_at
-    PaginatedSourceList:
-      type: object
-      required:
-      - results
-      properties:
-        next:
-          type:
-          - string
-          - 'null'
-          format: uri
-          description: Absolute URL of the next page, or null on the last page.
-        previous:
-          type:
-          - string
-          - 'null'
-          format: uri
-          description: Absolute URL of the previous page, or null on the first page.
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/Source'
-  headers:
-    XQuotaPaidBalance:
-      schema:
-        type: integer
-      description: Remaining paid balance (requests) for the caller.
-    XQuotaResetsAt:
-      schema:
-        type: string
-        format: date-time
-      description: ISO-8601 UTC timestamp of the next monthly quota reset.
-    RetryAfter:
-      schema:
-        type: integer
-      description: Seconds to wait before retrying.
-    XQuotaFreeRemaining:
-      schema:
-        type: integer
-      description: Remaining monthly free-tier requests for the caller.
-  responses:
-    Err401:
-      description: Unauthorized — missing or invalid API token.
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              detail:
-                type: string
-              code:
-                type: string
-          examples:
-            default:
-              value:
-                detail: Authentication credentials were not provided.
-                code: unauthorized
-    Err404:
-      description: Not Found — resource does not exist or is not yet public.
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              detail:
-                type: string
-              code:
-                type: string
-          examples:
-            default:
-              value:
-                detail: Not found.
-                code: not_found
-    Err402:
-      description: Payment Required — billing quota exhausted (monthly free tier or paid balance depleted).
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              detail:
-                type: string
-              code:
-                type: string
-          examples:
-            default:
-              value:
-                detail: Quota exhausted. Top up or wait until the monthly reset.
-                code: quota_exhausted
-      headers:
-        X-Quota-Free-Remaining:
-          $ref: '#/components/headers/XQuotaFreeRemaining'
-        X-Quota-Paid-Balance:
-          $ref: '#/components/headers/XQuotaPaidBalance'
-        X-Quota-Resets-At:
-          $ref: '#/components/headers/XQuotaResetsAt'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-    Err429:
-      description: Too Many Requests — technical per-user rate limit exceeded.
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              detail:
-                type: string
-              code:
-                type: string
-          examples:
-            default:
-              value:
-                detail: Request was throttled. Try again later.
-                code: throttled
-      headers:
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-    Err400:
-      description: Bad Request — invalid filter or parameter value.
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              detail:
-                type: string
-              code:
-                type: string
-          examples:
-            default:
-              value:
-                detail: Invalid value for parameter "ordering".
-                code: invalid_parameter
   securitySchemes:
     TokenAuth:
       type: apiKey

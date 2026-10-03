@@ -567,61 +567,7 @@ paths:
         '400':
           $ref: '#/components/responses/Err400'
 components:
-  headers:
-    XQuotaPaidBalance:
-      schema:
-        type: integer
-      description: Remaining paid balance (requests) for the caller.
-    ETag:
-      schema:
-        type: string
-      description: Opaque validator for conditional requests. Pass it back via If-None-Match on the next request to this endpoint to receive 304 when nothing changed.
-    XQuotaResetsAt:
-      schema:
-        type: string
-        format: date-time
-      description: ISO-8601 UTC timestamp of the next monthly quota reset.
-    RetryAfter:
-      schema:
-        type: integer
-      description: Seconds to wait before retrying.
-    XSyncTimestamp:
-      schema:
-        type: string
-      description: Start-of-request timestamp (ISO-8601 UTC). Returned on 200 and 304 responses of the endpoints that support incremental sync. Store it and pass it back as ?updated_since= on the next sync request — it is the start of this request, not its end, so changes made while you were paginating are not lost.
-    XQuotaFreeRemaining:
-      schema:
-        type: integer
-      description: Remaining monthly free-tier requests for the caller.
   schemas:
-    SlotDemandMarket:
-      type: object
-      description: One country row of the slot demand matrix.
-      properties:
-        country:
-          type: string
-        country_iso:
-          type: string
-        flag:
-          type: string
-        values:
-          type: array
-          items:
-            type: integer
-        mom_delta:
-          type: integer
-        volume_12m:
-          type: integer
-        trend:
-          type: string
-      required:
-      - country
-      - country_iso
-      - flag
-      - mom_delta
-      - trend
-      - values
-      - volume_12m
     PaginatedSlotListItemList:
       type: object
       required:
@@ -643,138 +589,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SlotListItem'
-    SlotListItem:
-      type: object
-      description: 'Compact slot listing item. thumbnail/thumbnail_url: CDN URL of first logo/preview screenshot. rtp_default: Decimal as string or null. mechanic: bet mechanic type.'
-      properties:
-        slug:
-          type: string
-        name:
-          type: string
-        provider:
-          type: object
-          description: The provider that released this slot.
-          properties:
-            slug:
-              type: string
-            name:
-              type: string
-          required:
-          - slug
-          - name
-          readOnly: true
-        game_category:
-          type: string
-        game_subtype:
-          type:
-          - string
-          - 'null'
-        rtp_default:
-          type:
-          - string
-          - 'null'
-          description: Decimal → str|null.
-          readOnly: true
-        volatility:
-          type:
-          - string
-          - 'null'
-        max_win:
-          type:
-          - integer
-          - 'null'
-        mechanic:
-          type:
-          - string
-          - 'null'
-        mechanic_value:
-          type:
-          - integer
-          - 'null'
-        release_date:
-          type:
-          - string
-          - 'null'
-          format: date
-        release_date_precision:
-          type: string
-        thumbnail_url:
-          type:
-          - string
-          - 'null'
-          description: 'CDN-URL of the first screenshot of type logo or preview.
-
-
-            Logo wins when both are present.'
-          readOnly: true
-        thumbnail:
-          type:
-          - object
-          - 'null'
-          description: Asset-versioned thumbnail object {url, key, version} or null.
-          properties:
-            url:
-              type: string
-              format: uri
-            key:
-              type: string
-              description: Storage key — the public path component of the URL.
-            version:
-              type:
-              - string
-              - 'null'
-              description: SHA-256 checksum of the image.
-          readOnly: true
-        volume_12m:
-          type:
-          - integer
-          - 'null'
-          readOnly: true
-        trend:
-          allOf:
-          - $ref: '#/components/schemas/TrendEnum'
-          readOnly: true
-        demo_url:
-          type:
-          - string
-          - 'null'
-          format: uri
-          description: Demo-embed URL (same format as detail assets.demo.embed_url) or null.
-          readOnly: true
-        updated_at:
-          type: string
-          format: date-time
-          description: When this record last changed on our side. This is the field ?updated_since= filters and orders by.
-      required:
-      - demo_url
-      - game_category
-      - game_subtype
-      - max_win
-      - mechanic
-      - mechanic_value
-      - name
-      - provider
-      - release_date
-      - release_date_precision
-      - rtp_default
-      - slug
-      - thumbnail
-      - thumbnail_url
-      - trend
-      - updated_at
-      - volatility
-      - volume_12m
-    TrendEnum:
-      enum:
-      - growing
-      - declining
-      - flat
-      type: string
-      description: '* `growing` - growing
-
-        * `declining` - declining
-
-        * `flat` - flat'
     SlotDemand:
       type: object
       description: 'Per-slot search demand snapshot. computed_at: when the underlying provider snapshot was computed. volume_12m/prev_12m/yoy_pct: trailing-12-month aggregate and YoY change; these are null when there is no snapshot yet. trend: always one of growing/declining/flat — it falls back to ''flat'' rather than null when there is nothing to compare. sparkline: a fixed 24-point monthly series, OLDEST first, not affected by ?months=. months: "YYYY-MM" labels, NEWEST first — note the opposite direction to sparkline. Their count follows ?months= (default 12). totals: total demand per month, aligned to months (chart line). markets: per-country {country, country_iso, flag, values[] (aligned to months), mom_delta, volume_12m, trend}, sorted by month-over-month growth desc. No snapshot yet → 200 with nulls/empty (not 404).'
@@ -828,6 +642,34 @@ components:
       - trend
       - volume_12m
       - yoy_pct
+    SlotDemandMarket:
+      type: object
+      description: One country row of the slot demand matrix.
+      properties:
+        country:
+          type: string
+        country_iso:
+          type: string
+        flag:
+          type: string
+        values:
+          type: array
+          items:
+            type: integer
+        mom_delta:
+          type: integer
+        volume_12m:
+          type: integer
+        trend:
+          type: string
+      required:
+      - country
+      - country_iso
+      - flag
+      - mom_delta
+      - trend
+      - values
+      - volume_12m
     SlotDetail:
       type: object
       description: 'Full slot profile in exactly three top-level blocks: data (verified, editorially curated), spec_sheet (unverified, as extracted), assets (screenshots, logo, palette, demo). Identity fields (slug, name, provider) live inside data, not at the top level.'
@@ -1400,9 +1242,141 @@ components:
       - assets
       - data
       - spec_sheet
+    SlotListItem:
+      type: object
+      description: 'Compact slot listing item. thumbnail/thumbnail_url: CDN URL of first logo/preview screenshot. rtp_default: Decimal as string or null. mechanic: bet mechanic type.'
+      properties:
+        slug:
+          type: string
+        name:
+          type: string
+        provider:
+          type: object
+          description: The provider that released this slot.
+          properties:
+            slug:
+              type: string
+            name:
+              type: string
+          required:
+          - slug
+          - name
+          readOnly: true
+        game_category:
+          type: string
+        game_subtype:
+          type:
+          - string
+          - 'null'
+        rtp_default:
+          type:
+          - string
+          - 'null'
+          description: Decimal → str|null.
+          readOnly: true
+        volatility:
+          type:
+          - string
+          - 'null'
+        max_win:
+          type:
+          - integer
+          - 'null'
+        mechanic:
+          type:
+          - string
+          - 'null'
+        mechanic_value:
+          type:
+          - integer
+          - 'null'
+        release_date:
+          type:
+          - string
+          - 'null'
+          format: date
+        release_date_precision:
+          type: string
+        thumbnail_url:
+          type:
+          - string
+          - 'null'
+          description: 'CDN-URL of the first screenshot of type logo or preview.
+
+
+            Logo wins when both are present.'
+          readOnly: true
+        thumbnail:
+          type:
+          - object
+          - 'null'
+          description: Asset-versioned thumbnail object {url, key, version} or null.
+          properties:
+            url:
+              type: string
+              format: uri
+            key:
+              type: string
+              description: Storage key — the public path component of the URL.
+            version:
+              type:
+              - string
+              - 'null'
+              description: SHA-256 checksum of the image.
+          readOnly: true
+        volume_12m:
+          type:
+          - integer
+          - 'null'
+          readOnly: true
+        trend:
+          allOf:
+          - $ref: '#/components/schemas/TrendEnum'
+          readOnly: true
+        demo_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Demo-embed URL (same format as detail assets.demo.embed_url) or null.
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          description: When this record last changed on our side. This is the field ?updated_since= filters and orders by.
+      required:
+      - demo_url
+      - game_category
+      - game_subtype
+      - max_win
+      - mechanic
+      - mechanic_value
+      - name
+      - provider
+      - release_date
+      - release_date_precision
+      - rtp_default
+      - slug
+      - thumbnail
+      - thumbnail_url
+      - trend
+      - updated_at
+      - volatility
+      - volume_12m
+    TrendEnum:
+      enum:
+      - growing
+      - declining
+      - flat
+      type: string
+      description: '* `growing` - growing
+
+        * `declining` - declining
+
+        * `flat` - flat'
   responses:
-    Err401:
-      description: Unauthorized — missing or invalid API token.
+    Err429:
+      description: Too Many Requests — technical per-user rate limit exceeded.
       content:
         application/json:
           schema:
@@ -1415,8 +1389,11 @@ components:
           examples:
             default:
               value:
-                detail: Authentication credentials were not provided.
-                code: unauthorized
+                detail: Request was throttled. Try again later.
+                code: throttled
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
     Err404:
       description: Not Found — resource does not exist or is not yet public.
       content:
@@ -1433,6 +1410,22 @@ components:
               value:
                 detail: Not found.
                 code: not_found
+    Err401:
+      description: Unauthorized — missing or invalid API token.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Authentication credentials were not provided.
+                code: unauthorized
     Err402:
       description: Payment Required — billing quota exhausted (monthly free tier or paid balance depleted).
       content:
@@ -1458,25 +1451,6 @@ components:
           $ref: '#/components/headers/XQuotaResetsAt'
         Retry-After:
           $ref: '#/components/headers/RetryAfter'
-    Err429:
-      description: Too Many Requests — technical per-user rate limit exceeded.
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              detail:
-                type: string
-              code:
-                type: string
-          examples:
-            default:
-              value:
-                detail: Request was throttled. Try again later.
-                code: throttled
-      headers:
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
     Err400:
       description: Bad Request — invalid filter or parameter value.
       content:
@@ -1493,6 +1467,32 @@ components:
               value:
                 detail: Invalid value for parameter "ordering".
                 code: invalid_parameter
+  headers:
+    XSyncTimestamp:
+      schema:
+        type: string
+      description: Start-of-request timestamp (ISO-8601 UTC). Returned on 200 and 304 responses of the endpoints that support incremental sync. Store it and pass it back as ?updated_since= on the next sync request — it is the start of this request, not its end, so changes made while you were paginating are not lost.
+    XQuotaResetsAt:
+      schema:
+        type: string
+        format: date-time
+      description: ISO-8601 UTC timestamp of the next monthly quota reset.
+    RetryAfter:
+      schema:
+        type: integer
+      description: Seconds to wait before retrying.
+    XQuotaFreeRemaining:
+      schema:
+        type: integer
+      description: Remaining monthly free-tier requests for the caller.
+    ETag:
+      schema:
+        type: string
+      description: Opaque validator for conditional requests. Pass it back via If-None-Match on the next request to this endpoint to receive 304 when nothing changed.
+    XQuotaPaidBalance:
+      schema:
+        type: integer
+      description: Remaining paid balance (requests) for the caller.
   securitySchemes:
     TokenAuth:
       type: apiKey

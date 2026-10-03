@@ -322,43 +322,37 @@ paths:
           $ref: '#/components/responses/Err400'
 components:
   schemas:
-    DemandMetaSlotGlobal:
+    DemandCutEnvelope:
+      oneOf:
+      - $ref: '#/components/schemas/SlotCutEnvelope'
+      - $ref: '#/components/schemas/SlotGlobalCutEnvelope'
+      - $ref: '#/components/schemas/CountryCutEnvelope'
+      - $ref: '#/components/schemas/KeyCutEnvelope'
+    KeyCutEnvelope:
       type: object
-      description: Response metadata for this envelope. by is pinned to "slot_global"; every other field is identical across axes.
+      description: 'Response for ?by=provider, theme, feature, mechanic or game_category: each result is one value of the chosen axis.'
       properties:
-        by:
-          $ref: '#/components/schemas/DemandMetaSlotGlobalByEnum'
-        country:
+        meta:
+          $ref: '#/components/schemas/DemandMetaProviderThemeFeatureMechanicGameCategory'
+        next:
           type:
           - string
           - 'null'
-        window:
-          $ref: '#/components/schemas/DemandWindow'
-        window_mixed:
-          type: boolean
-        metric:
-          type: string
-        total_volume_12m:
-          type: integer
-        overlapping:
-          type: boolean
-        coverage:
-          allOf:
-          - $ref: '#/components/schemas/DemandCoverage'
+          description: Absolute URL of the next page, or null on the last page.
+        previous:
+          type:
+          - string
+          - 'null'
+          description: Absolute URL of the previous page, or null on the first page.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeyCut'
       required:
-      - by
-      - country
-      - coverage
-      - metric
-      - overlapping
-      - total_volume_12m
-      - window
-      - window_mixed
-    DemandMetaCountryByEnum:
-      enum:
-      - country
-      type: string
-      description: '* `country` - country'
+      - meta
+      - next
+      - previous
+      - results
     DemandMetaProviderThemeFeatureMechanicGameCategory:
       type: object
       description: Response metadata for this envelope. by is one of "provider", "theme", "feature", "mechanic", "game_category"; every other field is identical across axes.
@@ -391,6 +385,123 @@ components:
       - total_volume_12m
       - window
       - window_mixed
+    CountryCutEnvelope:
+      type: object
+      description: 'Response for ?by=country: each result is one market.'
+      properties:
+        meta:
+          $ref: '#/components/schemas/DemandMetaCountry'
+        next:
+          type:
+          - string
+          - 'null'
+          description: Absolute URL of the next page, or null on the last page.
+        previous:
+          type:
+          - string
+          - 'null'
+          description: Absolute URL of the previous page, or null on the first page.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CountryCut'
+      required:
+      - meta
+      - next
+      - previous
+      - results
+    DemandProviderCoverage:
+      type: object
+      description: Element of `meta.coverage.providers[]`.
+      properties:
+        slug:
+          type: string
+        name:
+          type: string
+        slots:
+          type: integer
+      required:
+      - name
+      - slots
+      - slug
+    DemandWindow:
+      type: object
+      description: '`meta.window` — bounds of the shared rolling 12-month window. `null,null`
+
+        on an empty (not yet materialized) table.'
+      properties:
+        start:
+          type:
+          - string
+          - 'null'
+        end:
+          type:
+          - string
+          - 'null'
+      required:
+      - end
+      - start
+    DemandMetaCountry:
+      type: object
+      description: Response metadata for this envelope. by is pinned to "country"; every other field is identical across axes.
+      properties:
+        by:
+          $ref: '#/components/schemas/DemandMetaCountryByEnum'
+        country:
+          type:
+          - string
+          - 'null'
+        window:
+          $ref: '#/components/schemas/DemandWindow'
+        window_mixed:
+          type: boolean
+        metric:
+          type: string
+        total_volume_12m:
+          type: integer
+        overlapping:
+          type: boolean
+        coverage:
+          allOf:
+          - $ref: '#/components/schemas/DemandCoverage'
+      required:
+      - by
+      - country
+      - coverage
+      - metric
+      - overlapping
+      - total_volume_12m
+      - window
+      - window_mixed
+    CountryCut:
+      type: object
+      description: 'Result item for ?by=country: one market, with its rolling 12-month volume, how many slots carry data there, and how complete the current collection is.'
+      properties:
+        country:
+          type: object
+          description: 'The market: {iso, name}.'
+          properties:
+            iso:
+              type: string
+            name:
+              type: string
+          required:
+          - iso
+          - name
+          readOnly: true
+        volume_12m:
+          type: integer
+        slots_with_data:
+          type: integer
+        pairs_at_frontier_pct:
+          type: integer
+          description: Share of this country's pairs collected at the frontier, rounded to whole percent.
+          readOnly: true
+      required:
+      - country
+      - pairs_at_frontier_pct
+      - slots_with_data
+      - volume_12m
     DemandCoverage:
       type: object
       description: '`meta.coverage` — what the number is made of. `null` on pages after the
@@ -420,6 +531,218 @@ components:
       - pairs_at_frontier_pct
       - providers
       - slots_total
+    DemandMetaProviderThemeFeatureMechanicGameCategoryByEnum:
+      enum:
+      - provider
+      - theme
+      - feature
+      - mechanic
+      - game_category
+      type: string
+      description: '* `provider` - provider
+
+        * `theme` - theme
+
+        * `feature` - feature
+
+        * `mechanic` - mechanic
+
+        * `game_category` - game_category'
+    DemandMetaCountryByEnum:
+      enum:
+      - country
+      type: string
+      description: '* `country` - country'
+    DemandMetaSlotGlobal:
+      type: object
+      description: Response metadata for this envelope. by is pinned to "slot_global"; every other field is identical across axes.
+      properties:
+        by:
+          $ref: '#/components/schemas/DemandMetaSlotGlobalByEnum'
+        country:
+          type:
+          - string
+          - 'null'
+        window:
+          $ref: '#/components/schemas/DemandWindow'
+        window_mixed:
+          type: boolean
+        metric:
+          type: string
+        total_volume_12m:
+          type: integer
+        overlapping:
+          type: boolean
+        coverage:
+          allOf:
+          - $ref: '#/components/schemas/DemandCoverage'
+      required:
+      - by
+      - country
+      - coverage
+      - metric
+      - overlapping
+      - total_volume_12m
+      - window
+      - window_mixed
+    DemandMetaSlotByEnum:
+      enum:
+      - slot
+      type: string
+      description: '* `slot` - slot'
+    KeyCut:
+      type: object
+      description: 'Result item for ?by=provider, theme, feature, mechanic or game_category — one shape shared by all five axes: the axis value, its rolling 12-month volume, and how many slots carry data for it.'
+      properties:
+        key:
+          type: object
+          description: 'The value of the chosen axis: {slug, name}.'
+          properties:
+            slug:
+              type: string
+            name:
+              type: string
+          required:
+          - slug
+          - name
+          readOnly: true
+        volume_12m:
+          type: integer
+        slots_with_data:
+          type: integer
+      required:
+      - key
+      - slots_with_data
+      - volume_12m
+    DemandMetaSlot:
+      type: object
+      description: Response metadata for this envelope. by is pinned to "slot"; every other field is identical across axes.
+      properties:
+        by:
+          $ref: '#/components/schemas/DemandMetaSlotByEnum'
+        country:
+          type:
+          - string
+          - 'null'
+        window:
+          $ref: '#/components/schemas/DemandWindow'
+        window_mixed:
+          type: boolean
+        metric:
+          type: string
+        total_volume_12m:
+          type: integer
+        overlapping:
+          type: boolean
+        coverage:
+          allOf:
+          - $ref: '#/components/schemas/DemandCoverage'
+      required:
+      - by
+      - country
+      - coverage
+      - metric
+      - overlapping
+      - total_volume_12m
+      - window
+      - window_mixed
+    DemandMetaSlotGlobalByEnum:
+      enum:
+      - slot_global
+      type: string
+      description: '* `slot_global` - slot_global'
+    SlotGlobalCutEnvelope:
+      type: object
+      description: 'Response for ?by=slot_global: each result is one slot, aggregated across every tracked market.'
+      properties:
+        meta:
+          $ref: '#/components/schemas/DemandMetaSlotGlobal'
+        next:
+          type:
+          - string
+          - 'null'
+          description: Absolute URL of the next page, or null on the last page.
+        previous:
+          type:
+          - string
+          - 'null'
+          description: Absolute URL of the previous page, or null on the first page.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SlotGlobalCut'
+      required:
+      - meta
+      - next
+      - previous
+      - results
+    SlotGlobalCut:
+      type: object
+      description: 'Result item for ?by=slot_global: one slot, aggregated across every market we track. Use this for a worldwide ranking; use ?by=slot with ?country= when you need per-market detail.'
+      properties:
+        slot:
+          type: object
+          description: The slot this row aggregates.
+          properties:
+            slug:
+              type: string
+            name:
+              type: string
+            provider:
+              type: object
+              properties:
+                slug:
+                  type: string
+                name:
+                  type: string
+              required:
+              - slug
+              - name
+            demo_url:
+              type:
+              - string
+              - 'null'
+              format: uri
+              description: Demo-embed URL (same format as detail assets.demo.embed_url) or null.
+          required:
+          - slug
+          - name
+          - provider
+          - demo_url
+          readOnly: true
+        volume_12m:
+          type: integer
+        markets_with_data:
+          type: integer
+      required:
+      - markets_with_data
+      - slot
+      - volume_12m
+    SlotCutEnvelope:
+      type: object
+      description: 'Response for ?by=slot (the default axis): each result is one slot in one market.'
+      properties:
+        meta:
+          $ref: '#/components/schemas/DemandMetaSlot'
+        next:
+          type:
+          - string
+          - 'null'
+          description: Absolute URL of the next page, or null on the last page.
+        previous:
+          type:
+          - string
+          - 'null'
+          description: Absolute URL of the previous page, or null on the first page.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SlotCut'
+      required:
+      - meta
+      - next
+      - previous
+      - results
     SlotCut:
       type: object
       description: 'Result item for `by=slot`: `{slot: {slug, name, provider: {slug, name}},
@@ -483,330 +806,23 @@ components:
       - prev_volume
       - slot
       - volume_12m
-    DemandCutEnvelope:
-      oneOf:
-      - $ref: '#/components/schemas/SlotCutEnvelope'
-      - $ref: '#/components/schemas/SlotGlobalCutEnvelope'
-      - $ref: '#/components/schemas/CountryCutEnvelope'
-      - $ref: '#/components/schemas/KeyCutEnvelope'
-    DemandMetaSlot:
-      type: object
-      description: Response metadata for this envelope. by is pinned to "slot"; every other field is identical across axes.
-      properties:
-        by:
-          $ref: '#/components/schemas/DemandMetaSlotByEnum'
-        country:
-          type:
-          - string
-          - 'null'
-        window:
-          $ref: '#/components/schemas/DemandWindow'
-        window_mixed:
-          type: boolean
-        metric:
-          type: string
-        total_volume_12m:
-          type: integer
-        overlapping:
-          type: boolean
-        coverage:
-          allOf:
-          - $ref: '#/components/schemas/DemandCoverage'
-      required:
-      - by
-      - country
-      - coverage
-      - metric
-      - overlapping
-      - total_volume_12m
-      - window
-      - window_mixed
-    DemandMetaSlotByEnum:
-      enum:
-      - slot
-      type: string
-      description: '* `slot` - slot'
-    KeyCut:
-      type: object
-      description: 'Result item for ?by=provider, theme, feature, mechanic or game_category — one shape shared by all five axes: the axis value, its rolling 12-month volume, and how many slots carry data for it.'
-      properties:
-        key:
-          type: object
-          description: 'The value of the chosen axis: {slug, name}.'
-          properties:
-            slug:
-              type: string
-            name:
-              type: string
-          required:
-          - slug
-          - name
-          readOnly: true
-        volume_12m:
-          type: integer
-        slots_with_data:
-          type: integer
-      required:
-      - key
-      - slots_with_data
-      - volume_12m
-    CountryCutEnvelope:
-      type: object
-      description: 'Response for ?by=country: each result is one market.'
-      properties:
-        meta:
-          $ref: '#/components/schemas/DemandMetaCountry'
-        next:
-          type:
-          - string
-          - 'null'
-          description: Absolute URL of the next page, or null on the last page.
-        previous:
-          type:
-          - string
-          - 'null'
-          description: Absolute URL of the previous page, or null on the first page.
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/CountryCut'
-      required:
-      - meta
-      - next
-      - previous
-      - results
-    SlotCutEnvelope:
-      type: object
-      description: 'Response for ?by=slot (the default axis): each result is one slot in one market.'
-      properties:
-        meta:
-          $ref: '#/components/schemas/DemandMetaSlot'
-        next:
-          type:
-          - string
-          - 'null'
-          description: Absolute URL of the next page, or null on the last page.
-        previous:
-          type:
-          - string
-          - 'null'
-          description: Absolute URL of the previous page, or null on the first page.
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/SlotCut'
-      required:
-      - meta
-      - next
-      - previous
-      - results
-    DemandMetaSlotGlobalByEnum:
-      enum:
-      - slot_global
-      type: string
-      description: '* `slot_global` - slot_global'
-    KeyCutEnvelope:
-      type: object
-      description: 'Response for ?by=provider, theme, feature, mechanic or game_category: each result is one value of the chosen axis.'
-      properties:
-        meta:
-          $ref: '#/components/schemas/DemandMetaProviderThemeFeatureMechanicGameCategory'
-        next:
-          type:
-          - string
-          - 'null'
-          description: Absolute URL of the next page, or null on the last page.
-        previous:
-          type:
-          - string
-          - 'null'
-          description: Absolute URL of the previous page, or null on the first page.
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/KeyCut'
-      required:
-      - meta
-      - next
-      - previous
-      - results
-    DemandMetaCountry:
-      type: object
-      description: Response metadata for this envelope. by is pinned to "country"; every other field is identical across axes.
-      properties:
-        by:
-          $ref: '#/components/schemas/DemandMetaCountryByEnum'
-        country:
-          type:
-          - string
-          - 'null'
-        window:
-          $ref: '#/components/schemas/DemandWindow'
-        window_mixed:
-          type: boolean
-        metric:
-          type: string
-        total_volume_12m:
-          type: integer
-        overlapping:
-          type: boolean
-        coverage:
-          allOf:
-          - $ref: '#/components/schemas/DemandCoverage'
-      required:
-      - by
-      - country
-      - coverage
-      - metric
-      - overlapping
-      - total_volume_12m
-      - window
-      - window_mixed
-    DemandMetaProviderThemeFeatureMechanicGameCategoryByEnum:
-      enum:
-      - provider
-      - theme
-      - feature
-      - mechanic
-      - game_category
-      type: string
-      description: '* `provider` - provider
-
-        * `theme` - theme
-
-        * `feature` - feature
-
-        * `mechanic` - mechanic
-
-        * `game_category` - game_category'
-    DemandProviderCoverage:
-      type: object
-      description: Element of `meta.coverage.providers[]`.
-      properties:
-        slug:
-          type: string
-        name:
-          type: string
-        slots:
-          type: integer
-      required:
-      - name
-      - slots
-      - slug
-    DemandWindow:
-      type: object
-      description: '`meta.window` — bounds of the shared rolling 12-month window. `null,null`
-
-        on an empty (not yet materialized) table.'
-      properties:
-        start:
-          type:
-          - string
-          - 'null'
-        end:
-          type:
-          - string
-          - 'null'
-      required:
-      - end
-      - start
-    SlotGlobalCut:
-      type: object
-      description: 'Result item for ?by=slot_global: one slot, aggregated across every market we track. Use this for a worldwide ranking; use ?by=slot with ?country= when you need per-market detail.'
-      properties:
-        slot:
-          type: object
-          description: The slot this row aggregates.
-          properties:
-            slug:
-              type: string
-            name:
-              type: string
-            provider:
-              type: object
-              properties:
-                slug:
-                  type: string
-                name:
-                  type: string
-              required:
-              - slug
-              - name
-            demo_url:
-              type:
-              - string
-              - 'null'
-              format: uri
-              description: Demo-embed URL (same format as detail assets.demo.embed_url) or null.
-          required:
-          - slug
-          - name
-          - provider
-          - demo_url
-          readOnly: true
-        volume_12m:
-          type: integer
-        markets_with_data:
-          type: integer
-      required:
-      - markets_with_data
-      - slot
-      - volume_12m
-    CountryCut:
-      type: object
-      description: 'Result item for ?by=country: one market, with its rolling 12-month volume, how many slots carry data there, and how complete the current collection is.'
-      properties:
-        country:
-          type: object
-          description: 'The market: {iso, name}.'
-          properties:
-            iso:
-              type: string
-            name:
-              type: string
-          required:
-          - iso
-          - name
-          readOnly: true
-        volume_12m:
-          type: integer
-        slots_with_data:
-          type: integer
-        pairs_at_frontier_pct:
-          type: integer
-          description: Share of this country's pairs collected at the frontier, rounded to whole percent.
-          readOnly: true
-      required:
-      - country
-      - pairs_at_frontier_pct
-      - slots_with_data
-      - volume_12m
-    SlotGlobalCutEnvelope:
-      type: object
-      description: 'Response for ?by=slot_global: each result is one slot, aggregated across every tracked market.'
-      properties:
-        meta:
-          $ref: '#/components/schemas/DemandMetaSlotGlobal'
-        next:
-          type:
-          - string
-          - 'null'
-          description: Absolute URL of the next page, or null on the last page.
-        previous:
-          type:
-          - string
-          - 'null'
-          description: Absolute URL of the previous page, or null on the first page.
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/SlotGlobalCut'
-      required:
-      - meta
-      - next
-      - previous
-      - results
   responses:
+    Err401:
+      description: Unauthorized — missing or invalid API token.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Authentication credentials were not provided.
+                code: unauthorized
     Err400:
       description: Bad Request — invalid filter or parameter value.
       content:
@@ -848,22 +864,6 @@ components:
           $ref: '#/components/headers/XQuotaResetsAt'
         Retry-After:
           $ref: '#/components/headers/RetryAfter'
-    Err401:
-      description: Unauthorized — missing or invalid API token.
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              detail:
-                type: string
-              code:
-                type: string
-          examples:
-            default:
-              value:
-                detail: Authentication credentials were not provided.
-                code: unauthorized
     Err429:
       description: Too Many Requests — technical per-user rate limit exceeded.
       content:
@@ -884,15 +884,15 @@ components:
         Retry-After:
           $ref: '#/components/headers/RetryAfter'
   headers:
-    RetryAfter:
-      schema:
-        type: integer
-      description: Seconds to wait before retrying.
     XQuotaResetsAt:
       schema:
         type: string
         format: date-time
       description: ISO-8601 UTC timestamp of the next monthly quota reset.
+    RetryAfter:
+      schema:
+        type: integer
+      description: Seconds to wait before retrying.
     XQuotaFreeRemaining:
       schema:
         type: integer

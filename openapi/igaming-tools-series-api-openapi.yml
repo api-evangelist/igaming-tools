@@ -167,32 +167,185 @@ paths:
         '404':
           $ref: '#/components/responses/Err404'
 components:
+  responses:
+    Err429:
+      description: Too Many Requests — technical per-user rate limit exceeded.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Request was throttled. Try again later.
+                code: throttled
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+    Err404:
+      description: Not Found — resource does not exist or is not yet public.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Not found.
+                code: not_found
+    Err401:
+      description: Unauthorized — missing or invalid API token.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Authentication credentials were not provided.
+                code: unauthorized
+    Err402:
+      description: Payment Required — billing quota exhausted (monthly free tier or paid balance depleted).
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Quota exhausted. Top up or wait until the monthly reset.
+                code: quota_exhausted
+      headers:
+        X-Quota-Free-Remaining:
+          $ref: '#/components/headers/XQuotaFreeRemaining'
+        X-Quota-Paid-Balance:
+          $ref: '#/components/headers/XQuotaPaidBalance'
+        X-Quota-Resets-At:
+          $ref: '#/components/headers/XQuotaResetsAt'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+    Err400:
+      description: Bad Request — invalid filter or parameter value.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Invalid value for parameter "ordering".
+                code: invalid_parameter
   schemas:
-    SeriesDirectoryPage:
+    SeriesListItem:
       type: object
-      description: Cursor-paginated page of the series directory. count is the total number of series across all pages.
+      description: Slot series (franchise) directory entry with public-catalogue aggregates.
       properties:
-        count:
-          type: integer
-        next:
-          type:
-          - string
-          - 'null'
-          description: Absolute URL of the next page, or null on the last page.
-        previous:
-          type:
-          - string
-          - 'null'
-          description: Absolute URL of the previous page, or null on the first page.
-        results:
+        slug:
+          type: string
+        name:
+          type: string
+        aliases:
           type: array
           items:
-            $ref: '#/components/schemas/SeriesListItem'
+            type: string
+          description: 'Alternative spellings for matching a user''s query to this series'' slug. Filter by slug: an alias is not accepted as a filter value.'
+          readOnly: true
+        provider:
+          type: object
+          description: The provider that owns this series.
+          properties:
+            slug:
+              type: string
+            name:
+              type: string
+          required:
+          - slug
+          - name
+          readOnly: true
+        slots_count:
+          type: integer
+        years:
+          type: object
+          description: Release-year span of the public slots in this series.
+          properties:
+            from:
+              type:
+              - integer
+              - 'null'
+            to:
+              type:
+              - integer
+              - 'null'
+          required:
+          - from
+          - to
+          readOnly: true
+        rtp:
+          type: object
+          description: RTP range (percent, as decimal string) across every public game in this series; null when no game in the series has a value. The range covers games of every category, not only video slots — a few series mix a scratch card in, and one such game can widen it a lot. Read game_category alongside this field before treating the range as a slot figure.
+          properties:
+            min:
+              type:
+              - string
+              - 'null'
+            max:
+              type:
+              - string
+              - 'null'
+          required:
+          - min
+          - max
+          readOnly: true
+        max_win:
+          type: object
+          description: Max-win range (multiplier of stake) across the public slots in this series. null when no slot in the series has a value.
+          properties:
+            min:
+              type:
+              - integer
+              - 'null'
+            max:
+              type:
+              - integer
+              - 'null'
+          required:
+          - min
+          - max
+          readOnly: true
       required:
-      - count
-      - next
-      - previous
-      - results
+      - aliases
+      - max_win
+      - name
+      - provider
+      - rtp
+      - slots_count
+      - slug
+      - years
     SeriesDetail:
       type: object
       description: 'Family-wide summary for one series: catalogue aggregates, distributions and a short roster.'
@@ -317,6 +470,31 @@ components:
       - slug
       - volatility
       - years
+    SeriesDirectoryPage:
+      type: object
+      description: Cursor-paginated page of the series directory. count is the total number of series across all pages.
+      properties:
+        count:
+          type: integer
+        next:
+          type:
+          - string
+          - 'null'
+          description: Absolute URL of the next page, or null on the last page.
+        previous:
+          type:
+          - string
+          - 'null'
+          description: Absolute URL of the previous page, or null on the first page.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SeriesListItem'
+      required:
+      - count
+      - next
+      - previous
+      - results
     SeriesSlotItem:
       type: object
       description: Short roster entry inside a series family summary.
@@ -353,96 +531,7 @@ components:
       - released
       - rtp
       - slug
-    SeriesListItem:
-      type: object
-      description: Slot series (franchise) directory entry with public-catalogue aggregates.
-      properties:
-        slug:
-          type: string
-        name:
-          type: string
-        aliases:
-          type: array
-          items:
-            type: string
-          description: 'Alternative spellings for matching a user''s query to this series'' slug. Filter by slug: an alias is not accepted as a filter value.'
-          readOnly: true
-        provider:
-          type: object
-          description: The provider that owns this series.
-          properties:
-            slug:
-              type: string
-            name:
-              type: string
-          required:
-          - slug
-          - name
-          readOnly: true
-        slots_count:
-          type: integer
-        years:
-          type: object
-          description: Release-year span of the public slots in this series.
-          properties:
-            from:
-              type:
-              - integer
-              - 'null'
-            to:
-              type:
-              - integer
-              - 'null'
-          required:
-          - from
-          - to
-          readOnly: true
-        rtp:
-          type: object
-          description: RTP range (percent, as decimal string) across every public game in this series; null when no game in the series has a value. The range covers games of every category, not only video slots — a few series mix a scratch card in, and one such game can widen it a lot. Read game_category alongside this field before treating the range as a slot figure.
-          properties:
-            min:
-              type:
-              - string
-              - 'null'
-            max:
-              type:
-              - string
-              - 'null'
-          required:
-          - min
-          - max
-          readOnly: true
-        max_win:
-          type: object
-          description: Max-win range (multiplier of stake) across the public slots in this series. null when no slot in the series has a value.
-          properties:
-            min:
-              type:
-              - integer
-              - 'null'
-            max:
-              type:
-              - integer
-              - 'null'
-          required:
-          - min
-          - max
-          readOnly: true
-      required:
-      - aliases
-      - max_win
-      - name
-      - provider
-      - rtp
-      - slots_count
-      - slug
-      - years
   headers:
-    XQuotaPaidBalance:
-      schema:
-        type: integer
-      description: Remaining paid balance (requests) for the caller.
     XQuotaResetsAt:
       schema:
         type: string
@@ -456,99 +545,10 @@ components:
       schema:
         type: integer
       description: Remaining monthly free-tier requests for the caller.
-  responses:
-    Err401:
-      description: Unauthorized — missing or invalid API token.
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              detail:
-                type: string
-              code:
-                type: string
-          examples:
-            default:
-              value:
-                detail: Authentication credentials were not provided.
-                code: unauthorized
-    Err404:
-      description: Not Found — resource does not exist or is not yet public.
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              detail:
-                type: string
-              code:
-                type: string
-          examples:
-            default:
-              value:
-                detail: Not found.
-                code: not_found
-    Err402:
-      description: Payment Required — billing quota exhausted (monthly free tier or paid balance depleted).
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              detail:
-                type: string
-              code:
-                type: string
-          examples:
-            default:
-              value:
-                detail: Quota exhausted. Top up or wait until the monthly reset.
-                code: quota_exhausted
-      headers:
-        X-Quota-Free-Remaining:
-          $ref: '#/components/headers/XQuotaFreeRemaining'
-        X-Quota-Paid-Balance:
-          $ref: '#/components/headers/XQuotaPaidBalance'
-        X-Quota-Resets-At:
-          $ref: '#/components/headers/XQuotaResetsAt'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-    Err429:
-      description: Too Many Requests — technical per-user rate limit exceeded.
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              detail:
-                type: string
-              code:
-                type: string
-          examples:
-            default:
-              value:
-                detail: Request was throttled. Try again later.
-                code: throttled
-      headers:
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-    Err400:
-      description: Bad Request — invalid filter or parameter value.
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              detail:
-                type: string
-              code:
-                type: string
-          examples:
-            default:
-              value:
-                detail: Invalid value for parameter "ordering".
-                code: invalid_parameter
+    XQuotaPaidBalance:
+      schema:
+        type: integer
+      description: Remaining paid balance (requests) for the caller.
   securitySchemes:
     TokenAuth:
       type: apiKey

@@ -226,54 +226,7 @@ paths:
         '404':
           $ref: '#/components/responses/Err404'
 components:
-  headers:
-    XQuotaPaidBalance:
-      schema:
-        type: integer
-      description: Remaining paid balance (requests) for the caller.
-    ETag:
-      schema:
-        type: string
-      description: Opaque validator for conditional requests. Pass it back via If-None-Match on the next request to this endpoint to receive 304 when nothing changed.
-    XQuotaResetsAt:
-      schema:
-        type: string
-        format: date-time
-      description: ISO-8601 UTC timestamp of the next monthly quota reset.
-    RetryAfter:
-      schema:
-        type: integer
-      description: Seconds to wait before retrying.
-    XSyncTimestamp:
-      schema:
-        type: string
-      description: Start-of-request timestamp (ISO-8601 UTC). Returned on 200 and 304 responses of the endpoints that support incremental sync. Store it and pass it back as ?updated_since= on the next sync request — it is the start of this request, not its end, so changes made while you were paginating are not lost.
-    XQuotaFreeRemaining:
-      schema:
-        type: integer
-      description: Remaining monthly free-tier requests for the caller.
   schemas:
-    PaginatedBrandShortList:
-      type: object
-      required:
-      - results
-      properties:
-        next:
-          type:
-          - string
-          - 'null'
-          format: uri
-          description: Absolute URL of the next page, or null on the last page.
-        previous:
-          type:
-          - string
-          - 'null'
-          format: uri
-          description: Absolute URL of the previous page, or null on the first page.
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/BrandShort'
     PaginatedNewsArticleShortList:
       type: object
       required:
@@ -439,9 +392,56 @@ components:
       - name
       - news_count
       - slug
+    PaginatedBrandShortList:
+      type: object
+      required:
+      - results
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Absolute URL of the next page, or null on the last page.
+        previous:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Absolute URL of the previous page, or null on the first page.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BrandShort'
+  headers:
+    XSyncTimestamp:
+      schema:
+        type: string
+      description: Start-of-request timestamp (ISO-8601 UTC). Returned on 200 and 304 responses of the endpoints that support incremental sync. Store it and pass it back as ?updated_since= on the next sync request — it is the start of this request, not its end, so changes made while you were paginating are not lost.
+    XQuotaResetsAt:
+      schema:
+        type: string
+        format: date-time
+      description: ISO-8601 UTC timestamp of the next monthly quota reset.
+    RetryAfter:
+      schema:
+        type: integer
+      description: Seconds to wait before retrying.
+    ETag:
+      schema:
+        type: string
+      description: Opaque validator for conditional requests. Pass it back via If-None-Match on the next request to this endpoint to receive 304 when nothing changed.
+    XQuotaFreeRemaining:
+      schema:
+        type: integer
+      description: Remaining monthly free-tier requests for the caller.
+    XQuotaPaidBalance:
+      schema:
+        type: integer
+      description: Remaining paid balance (requests) for the caller.
   responses:
-    Err401:
-      description: Unauthorized — missing or invalid API token.
+    Err429:
+      description: Too Many Requests — technical per-user rate limit exceeded.
       content:
         application/json:
           schema:
@@ -454,8 +454,11 @@ components:
           examples:
             default:
               value:
-                detail: Authentication credentials were not provided.
-                code: unauthorized
+                detail: Request was throttled. Try again later.
+                code: throttled
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
     Err404:
       description: Not Found — resource does not exist or is not yet public.
       content:
@@ -472,6 +475,22 @@ components:
               value:
                 detail: Not found.
                 code: not_found
+    Err401:
+      description: Unauthorized — missing or invalid API token.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Authentication credentials were not provided.
+                code: unauthorized
     Err402:
       description: Payment Required — billing quota exhausted (monthly free tier or paid balance depleted).
       content:
@@ -495,25 +514,6 @@ components:
           $ref: '#/components/headers/XQuotaPaidBalance'
         X-Quota-Resets-At:
           $ref: '#/components/headers/XQuotaResetsAt'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-    Err429:
-      description: Too Many Requests — technical per-user rate limit exceeded.
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              detail:
-                type: string
-              code:
-                type: string
-          examples:
-            default:
-              value:
-                detail: Request was throttled. Try again later.
-                code: throttled
-      headers:
         Retry-After:
           $ref: '#/components/headers/RetryAfter'
     Err400:
