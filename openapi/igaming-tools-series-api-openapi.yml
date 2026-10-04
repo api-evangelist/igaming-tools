@@ -167,9 +167,27 @@ paths:
         '404':
           $ref: '#/components/responses/Err404'
 components:
+  headers:
+    XQuotaPaidBalance:
+      schema:
+        type: integer
+      description: Remaining paid balance (requests) for the caller.
+    XQuotaResetsAt:
+      schema:
+        type: string
+        format: date-time
+      description: ISO-8601 UTC timestamp of the next monthly quota reset.
+    XQuotaFreeRemaining:
+      schema:
+        type: integer
+      description: Remaining monthly free-tier requests for the caller.
+    RetryAfter:
+      schema:
+        type: integer
+      description: Seconds to wait before retrying.
   responses:
-    Err429:
-      description: Too Many Requests — technical per-user rate limit exceeded.
+    Err400:
+      description: Bad Request — invalid filter or parameter value.
       content:
         application/json:
           schema:
@@ -182,11 +200,8 @@ components:
           examples:
             default:
               value:
-                detail: Request was throttled. Try again later.
-                code: throttled
-      headers:
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
+                detail: Invalid value for parameter "ordering".
+                code: invalid_parameter
     Err404:
       description: Not Found — resource does not exist or is not yet public.
       content:
@@ -244,8 +259,8 @@ components:
           $ref: '#/components/headers/XQuotaResetsAt'
         Retry-After:
           $ref: '#/components/headers/RetryAfter'
-    Err400:
-      description: Bad Request — invalid filter or parameter value.
+    Err429:
+      description: Too Many Requests — technical per-user rate limit exceeded.
       content:
         application/json:
           schema:
@@ -258,9 +273,48 @@ components:
           examples:
             default:
               value:
-                detail: Invalid value for parameter "ordering".
-                code: invalid_parameter
+                detail: Request was throttled. Try again later.
+                code: throttled
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
   schemas:
+    SeriesSlotItem:
+      type: object
+      description: Short roster entry inside a series family summary.
+      properties:
+        slug:
+          type: string
+        name:
+          type: string
+        released:
+          type:
+          - string
+          - 'null'
+          readOnly: true
+        rtp:
+          type:
+          - string
+          - 'null'
+          readOnly: true
+        max_win:
+          type:
+          - integer
+          - 'null'
+        demo_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Demo-embed URL (same format as detail assets.demo.embed_url) or null.
+          readOnly: true
+      required:
+      - demo_url
+      - max_win
+      - name
+      - released
+      - rtp
+      - slug
     SeriesListItem:
       type: object
       description: Slot series (franchise) directory entry with public-catalogue aggregates.
@@ -346,6 +400,31 @@ components:
       - slots_count
       - slug
       - years
+    SeriesDirectoryPage:
+      type: object
+      description: Cursor-paginated page of the series directory. count is the total number of series across all pages.
+      properties:
+        count:
+          type: integer
+        next:
+          type:
+          - string
+          - 'null'
+          description: Absolute URL of the next page, or null on the last page.
+        previous:
+          type:
+          - string
+          - 'null'
+          description: Absolute URL of the previous page, or null on the first page.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SeriesListItem'
+      required:
+      - count
+      - next
+      - previous
+      - results
     SeriesDetail:
       type: object
       description: 'Family-wide summary for one series: catalogue aggregates, distributions and a short roster.'
@@ -470,85 +549,6 @@ components:
       - slug
       - volatility
       - years
-    SeriesDirectoryPage:
-      type: object
-      description: Cursor-paginated page of the series directory. count is the total number of series across all pages.
-      properties:
-        count:
-          type: integer
-        next:
-          type:
-          - string
-          - 'null'
-          description: Absolute URL of the next page, or null on the last page.
-        previous:
-          type:
-          - string
-          - 'null'
-          description: Absolute URL of the previous page, or null on the first page.
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/SeriesListItem'
-      required:
-      - count
-      - next
-      - previous
-      - results
-    SeriesSlotItem:
-      type: object
-      description: Short roster entry inside a series family summary.
-      properties:
-        slug:
-          type: string
-        name:
-          type: string
-        released:
-          type:
-          - string
-          - 'null'
-          readOnly: true
-        rtp:
-          type:
-          - string
-          - 'null'
-          readOnly: true
-        max_win:
-          type:
-          - integer
-          - 'null'
-        demo_url:
-          type:
-          - string
-          - 'null'
-          format: uri
-          description: Demo-embed URL (same format as detail assets.demo.embed_url) or null.
-          readOnly: true
-      required:
-      - demo_url
-      - max_win
-      - name
-      - released
-      - rtp
-      - slug
-  headers:
-    XQuotaResetsAt:
-      schema:
-        type: string
-        format: date-time
-      description: ISO-8601 UTC timestamp of the next monthly quota reset.
-    RetryAfter:
-      schema:
-        type: integer
-      description: Seconds to wait before retrying.
-    XQuotaFreeRemaining:
-      schema:
-        type: integer
-      description: Remaining monthly free-tier requests for the caller.
-    XQuotaPaidBalance:
-      schema:
-        type: integer
-      description: Remaining paid balance (requests) for the caller.
   securitySchemes:
     TokenAuth:
       type: apiKey

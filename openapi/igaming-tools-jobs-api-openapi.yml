@@ -284,49 +284,70 @@ paths:
           $ref: '#/components/responses/Err429WithQuota'
 components:
   schemas:
-    ClosedReasonEnum:
+    EmploymentTypeEnum:
+      enum:
+      - full_time
+      - part_time
+      - contract
+      - freelance
+      - internship
       type: string
-      enum:
-      - filled
-      - closed
-      - expired
-    BlankEnum:
-      enum:
-      - ''
-    IgamingSegmentEnum:
-      enum:
-      - sportsbook
-      - casino
-      - poker
-      - lottery
-      - esports
-      - affiliate
-      - platform_provider
-      - game_studio
-      - regulator
-      - payment_provider
-      type: string
-      description: '* `sportsbook` - Sportsbook
+      description: '* `full_time` - Full-time
 
-        * `casino` - Casino
+        * `part_time` - Part-time
 
-        * `poker` - Poker
+        * `contract` - Contract
 
-        * `lottery` - Lottery
+        * `freelance` - Freelance
 
-        * `esports` - Esports
-
-        * `affiliate` - Affiliate
-
-        * `platform_provider` - Platform Provider
-
-        * `game_studio` - Game Studio
-
-        * `regulator` - Regulator
-
-        * `payment_provider` - Payment Provider
+        * `internship` - Internship
 
         * `` - Unknown'
+    PaginatedJobsListList:
+      type: object
+      required:
+      - results
+      properties:
+        next:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Absolute URL of the next page, or null on the last page.
+        previous:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Absolute URL of the previous page, or null on the first page.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/JobsList'
+    VacancyLanguage:
+      type: object
+      description: One language requirement of a vacancy.
+      properties:
+        code:
+          type: string
+          description: ISO 639-1 lower-case language code.
+        level:
+          type: string
+          description: One of basic, intermediate, fluent, native — or empty when the vacancy does not state a level.
+      required:
+      - code
+      - level
+    TriStateEnum:
+      enum:
+      - 'yes'
+      - 'no'
+      - unknown
+      type: string
+      description: '* `yes` - Yes
+
+        * `no` - No
+
+        * `unknown` - Unknown'
     RemoteModeEnum:
       enum:
       - on_site
@@ -356,6 +377,36 @@ components:
         * `hour` - Per hour
 
         * `` - Unknown'
+    SeniorityEnum:
+      enum:
+      - junior
+      - mid
+      - senior
+      - lead
+      - head
+      - c_level
+      type: string
+      description: '* `junior` - Junior
+
+        * `mid` - Mid
+
+        * `senior` - Senior
+
+        * `lead` - Lead
+
+        * `head` - Head
+
+        * `c_level` - C-level
+
+        * `` - Unknown'
+    StatusPublicEnum:
+      type: string
+      enum:
+      - live
+      - closed
+    BlankEnum:
+      enum:
+      - ''
     JobsDetail:
       type: object
       description: 'Full iGaming job vacancy detail. Extends list fields with description, application URLs, and company info. secondary_apply_url: LinkedIn mirror link when available.'
@@ -605,60 +656,6 @@ components:
       - timezone_constraints
       - title
       - visa_sponsorship
-    PaginatedJobsListList:
-      type: object
-      required:
-      - results
-      properties:
-        next:
-          type:
-          - string
-          - 'null'
-          format: uri
-          description: Absolute URL of the next page, or null on the last page.
-        previous:
-          type:
-          - string
-          - 'null'
-          format: uri
-          description: Absolute URL of the previous page, or null on the first page.
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/JobsList'
-    TriStateEnum:
-      enum:
-      - 'yes'
-      - 'no'
-      - unknown
-      type: string
-      description: '* `yes` - Yes
-
-        * `no` - No
-
-        * `unknown` - Unknown'
-    SeniorityEnum:
-      enum:
-      - junior
-      - mid
-      - senior
-      - lead
-      - head
-      - c_level
-      type: string
-      description: '* `junior` - Junior
-
-        * `mid` - Mid
-
-        * `senior` - Senior
-
-        * `lead` - Lead
-
-        * `head` - Head
-
-        * `c_level` - C-level
-
-        * `` - Unknown'
     SourceEnum:
       enum:
       - careers
@@ -667,6 +664,46 @@ components:
       description: '* `careers` - Careers
 
         * `linkedin` - LinkedIn'
+    ClosedReasonEnum:
+      type: string
+      enum:
+      - filled
+      - closed
+      - expired
+    IgamingSegmentEnum:
+      enum:
+      - sportsbook
+      - casino
+      - poker
+      - lottery
+      - esports
+      - affiliate
+      - platform_provider
+      - game_studio
+      - regulator
+      - payment_provider
+      type: string
+      description: '* `sportsbook` - Sportsbook
+
+        * `casino` - Casino
+
+        * `poker` - Poker
+
+        * `lottery` - Lottery
+
+        * `esports` - Esports
+
+        * `affiliate` - Affiliate
+
+        * `platform_provider` - Platform Provider
+
+        * `game_studio` - Game Studio
+
+        * `regulator` - Regulator
+
+        * `payment_provider` - Payment Provider
+
+        * `` - Unknown'
     JobsList:
       type: object
       description: 'iGaming job vacancy card (list view). JSON key "url" is absent: use source_url instead.'
@@ -805,98 +842,7 @@ components:
       - source_url
       - status_public
       - title
-    StatusPublicEnum:
-      type: string
-      enum:
-      - live
-      - closed
-    VacancyLanguage:
-      type: object
-      description: One language requirement of a vacancy.
-      properties:
-        code:
-          type: string
-          description: ISO 639-1 lower-case language code.
-        level:
-          type: string
-          description: One of basic, intermediate, fluent, native — or empty when the vacancy does not state a level.
-      required:
-      - code
-      - level
-    EmploymentTypeEnum:
-      enum:
-      - full_time
-      - part_time
-      - contract
-      - freelance
-      - internship
-      type: string
-      description: '* `full_time` - Full-time
-
-        * `part_time` - Part-time
-
-        * `contract` - Contract
-
-        * `freelance` - Freelance
-
-        * `internship` - Internship
-
-        * `` - Unknown'
-  headers:
-    XSyncTimestamp:
-      schema:
-        type: string
-      description: Start-of-request timestamp (ISO-8601 UTC). Returned on 200 and 304 responses of the endpoints that support incremental sync. Store it and pass it back as ?updated_since= on the next sync request — it is the start of this request, not its end, so changes made while you were paginating are not lost.
-    XQuotaResetsAt:
-      schema:
-        type: string
-        format: date-time
-      description: ISO-8601 UTC timestamp of the next monthly quota reset.
-    RetryAfter:
-      schema:
-        type: integer
-      description: Seconds to wait before retrying.
-    XQuotaFreeRemaining:
-      schema:
-        type: integer
-      description: Remaining monthly free-tier requests for the caller.
-    XQuotaPaidBalance:
-      schema:
-        type: integer
-      description: Remaining paid balance (requests) for the caller.
   responses:
-    Err401:
-      description: Unauthorized — missing or invalid API token.
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              detail:
-                type: string
-              code:
-                type: string
-          examples:
-            default:
-              value:
-                detail: Authentication credentials were not provided.
-                code: unauthorized
-    Err400:
-      description: Bad Request — invalid filter or parameter value.
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              detail:
-                type: string
-              code:
-                type: string
-          examples:
-            default:
-              value:
-                detail: Invalid value for parameter "ordering".
-                code: invalid_parameter
     Err404:
       description: Not Found — resource does not exist or is not yet public.
       content:
@@ -938,8 +884,8 @@ components:
           $ref: '#/components/headers/XQuotaResetsAt'
         Retry-After:
           $ref: '#/components/headers/RetryAfter'
-    Err429:
-      description: Too Many Requests — technical per-user rate limit exceeded.
+    Err401:
+      description: Unauthorized — missing or invalid API token.
       content:
         application/json:
           schema:
@@ -952,11 +898,24 @@ components:
           examples:
             default:
               value:
-                detail: Request was throttled. Try again later.
-                code: throttled
-      headers:
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
+                detail: Authentication credentials were not provided.
+                code: unauthorized
+    Err400:
+      description: Bad Request — invalid filter or parameter value.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Invalid value for parameter "ordering".
+                code: invalid_parameter
     Err429WithQuota:
       description: Too Many Requests — technical per-user rate limit exceeded.
       content:
@@ -982,6 +941,47 @@ components:
           $ref: '#/components/headers/XQuotaPaidBalance'
         X-Quota-Resets-At:
           $ref: '#/components/headers/XQuotaResetsAt'
+    Err429:
+      description: Too Many Requests — technical per-user rate limit exceeded.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            default:
+              value:
+                detail: Request was throttled. Try again later.
+                code: throttled
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+  headers:
+    XQuotaFreeRemaining:
+      schema:
+        type: integer
+      description: Remaining monthly free-tier requests for the caller.
+    RetryAfter:
+      schema:
+        type: integer
+      description: Seconds to wait before retrying.
+    XQuotaPaidBalance:
+      schema:
+        type: integer
+      description: Remaining paid balance (requests) for the caller.
+    XQuotaResetsAt:
+      schema:
+        type: string
+        format: date-time
+      description: ISO-8601 UTC timestamp of the next monthly quota reset.
+    XSyncTimestamp:
+      schema:
+        type: string
+      description: Start-of-request timestamp (ISO-8601 UTC). Returned on 200 and 304 responses of the endpoints that support incremental sync. Store it and pass it back as ?updated_since= on the next sync request — it is the start of this request, not its end, so changes made while you were paginating are not lost.
   securitySchemes:
     TokenAuth:
       type: apiKey
