@@ -1,0 +1,12 @@
+{
+ "url": "https://i-gaming.tools/docs/openapi.json",
+ "requested_url": "https://i-gaming.tools/docs/openapi.json",
+ "status": 200,
+ "content_type": "application/json; charset=utf-8",
+ "bytes": 148289,
+ "sha256": "45065af81903031258cb17c77256ac9d9048671c593edbbfb91204059b58b40a",
+ "fetched_at": "2026-10-04",
+ "fetched_by": "APIEvangelist-Harvest/1.0 (+https://apievangelist.com)",
+ "match": "equivalent",
+ "note": "Re-fetched from the provider by verify-openapi-sources.py; the provider's current document describes the same operations (Jaccard 1.0), but the bytes differ, so the archive is an earlier or reformatted copy."
+}
