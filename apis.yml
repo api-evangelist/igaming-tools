@@ -26,7 +26,7 @@ accessModel:
   generated: '2026-09-03'
   method: derived
 created: '2026-08-30'
-modified: '2026-09-05'
+modified: '2026-10-06'
 specificationVersion: '0.21'
 tags:
 - iGaming
@@ -491,6 +491,8 @@ generated:
   confidence: 96
   at: '2026-08-30T06:25:46.277Z'
 common:
+- url: https://i-gaming.tools/news/
+  type: Blog
 - type: Overlay
   url: overlays/igaming-tools-openapi-overlay.yaml
 - type: Website
