@@ -991,3 +991,9 @@ components:
 externalDocs:
   url: https://i-gaming.tools/docs/
   description: Guides, reference and code examples
+x-provenance:
+  method: harvested
+  publisher: iGaming Tools
+  source: https://i-gaming.tools/docs/openapi.json
+  note: split by refine-openapis from the provider's own published document, verified by fetch (openapi/_original/*.fetch.json);
+    stamped by stamp-openapi-provenance.py (roadmap#793)
