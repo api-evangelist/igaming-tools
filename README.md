@@ -1,4 +1,4 @@
-# igaming-tools
+# iGaming Tools
 
 <!-- API-EVANGELIST-PROVENANCE:BEGIN -->
 > ### About this repository
@@ -64,4 +64,129 @@
 > Full detail: **[Where this data comes from](https://apievangelist.com/about/where-our-data-comes-from)**
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
-Data provider offering structured iGaming data (slot providers, slots, news, jobs, regulators, market demand) via a token-authenticated REST API (OpenAPI 3.0.3) plus a free public hosted MCP server with 13 read-only tools and llms.txt files.
+iGaming Tools (i-gaming.tools) is an independent data provider that documents online casino slot games and the industry around them. Its own automated pipeline drives headless browsers against live provider demos to extract 45+ structured fields per slot — RTP and up to 30 variants, volatility, max win, reels, bet mechanic, full paytables with per-symbol payouts and hex colours, bonus rounds, and ~21 screenshots with WebP derivatives — alongside slot providers, game series, themes, features, licensing regulators, ingested industry news, iGaming job vacancies and a computed search-demand layer. Access is a token-authenticated, read-only REST API (OpenAPI 3.0.3, 29 GET operations, cursor pagination, ETag/304, ?updated_since incremental sync with tombstone reconcile) plus a free unauthenticated hosted MCP server exposing 17 read-only tools, and two llms.txt files. It is not a casino, operator or betting service.
+
+**Areas:** iGaming · Online Casino · Gambling · slot games · slot metadata · gambling regulation · Industry News · Job · market demand · Analytics · REST API · OpenAPI
+
+## iGaming Tools on APIs.io
+
+Everything profiled for iGaming Tools is published on APIs.io rather than in this repository. Start at the provider page — **[apis.io/providers/igaming-tools/](https://apis.io/providers/igaming-tools/)** — or go straight to one of the APIs or properties below.
+
+### APIs (12)
+
+- [iGaming Tools MCP Server](https://apis.io/apis/igaming-tools/igaming-tools-mcp-server/) — Free public hosted MCP server (Streamable HTTP, no API key, read-only, not metered) exposing the same iGaming dataset as 17 tools: provider search and…
+- [iGaming Tools Demand API](https://apis.io/apis/igaming-tools/igaming-tools-demand-api/) — The demand API from iGaming Tools — 1 operation(s) for demand.
+- [iGaming Tools Features API](https://apis.io/apis/igaming-tools/igaming-tools-features-api/) — The features API from iGaming Tools — 1 operation(s) for features.
+- [iGaming Tools Jobs API](https://apis.io/apis/igaming-tools/igaming-tools-jobs-api/) — The jobs API from iGaming Tools — 3 operation(s) for jobs.
+- [iGaming Tools News API](https://apis.io/apis/igaming-tools/igaming-tools-news-api/) — The news API from iGaming Tools — 3 operation(s) for news.
+- [iGaming Tools Providers API](https://apis.io/apis/igaming-tools/igaming-tools-providers-api/) — The providers API from iGaming Tools — 8 operation(s) for providers.
+- [iGaming Tools Regulators API](https://apis.io/apis/igaming-tools/igaming-tools-regulators-api/) — The regulators API from iGaming Tools — 3 operation(s) for regulators.
+- [iGaming Tools Series API](https://apis.io/apis/igaming-tools/igaming-tools-series-api/) — The series API from iGaming Tools — 2 operation(s) for series.
+- [iGaming Tools Slots API](https://apis.io/apis/igaming-tools/igaming-tools-slots-api/) — The slots API from iGaming Tools — 4 operation(s) for slots.
+- [iGaming Tools Sources API](https://apis.io/apis/igaming-tools/igaming-tools-sources-api/) — The sources API from iGaming Tools — 2 operation(s) for sources.
+- [iGaming Tools Stats API](https://apis.io/apis/igaming-tools/igaming-tools-stats-api/) — The stats API from iGaming Tools — 1 operation(s) for stats.
+- [iGaming Tools Themes API](https://apis.io/apis/igaming-tools/igaming-tools-themes-api/) — The themes API from iGaming Tools — 1 operation(s) for themes.
+
+### Published properties
+
+Each property below is a page on APIs.io carrying the machine-readable artifact and what it says.
+
+#### MCP servers (1)
+
+Model Context Protocol servers that expose the API to agents.
+
+- [iGaming Tools MCP Server](https://apis.io/servers/igaming-tools/igaming-tools-mcp-server/)
+
+#### Overlays (1)
+
+OpenAPI overlays, including conversational phrasing for each operation.
+
+- [Igaming Tools Openapi Overlay](https://apis.io/overlays/igaming-tools/igaming-tools-openapi-overlay/)
+
+#### Security (2)
+
+Authentication, trust centre, and vulnerability disclosure.
+
+- [Igaming Tools Authentication](https://apis.io/security/igaming-tools/igaming-tools-authentication/)
+- [Igaming Tools Domain Security](https://apis.io/security/igaming-tools/igaming-tools-domain-security/)
+
+#### Plans and pricing (1)
+
+Published plans, tiers and prices.
+
+- [Igaming Tools Plans Pricing](https://apis.io/plans/igaming-tools/igaming-tools-plans-pricing/)
+
+#### Rate limits (1)
+
+Published request limits.
+
+- [Igaming Tools Rate Limits](https://apis.io/rate-limits/igaming-tools/igaming-tools-rate-limits/)
+
+## Where to find this API
+
+Links to the company's own pages. This repository publishes no copy of their specifications — the canonical document is theirs and lives at the URLs below.
+
+- [Website](https://i-gaming.tools/)
+- [Documentation](https://i-gaming.tools/docs/)
+- [Getting started](https://i-gaming.tools/docs/quickstart/)
+- [API reference](https://i-gaming.tools/api/docs/)
+- [Pricing](https://i-gaming.tools/pricing/)
+- [Sign up](https://i-gaming.tools/register/)
+- [Blog](https://i-gaming.tools/news/)
+- [Terms of service](https://i-gaming.tools/terms/)
+- [Privacy policy](https://i-gaming.tools/privacy/)
+
+## API Evangelist rating
+
+**Kin Score 52.7** — developing · rubric 0.25.0 · scored 2026-10-23
+
+| Facet | Score |
+|---|---|
+| Discoverability | 75.0 |
+| Contract quality | 52.3 |
+| Contract governance | 4.5 |
+| Operational transparency | 31.6 |
+| Developer ergonomics | 54.2 |
+| Access clarity | 76.3 |
+
+**Agent readiness 41.8** — agent-native
+
+| Agent-readiness dimension | Result |
+|---|---|
+| Spec Presence | yes |
+| Agentic Access | — |
+| Reversibility Documented | na |
+| MCP Server | documented (partial credit) |
+| Auth Clarity | bearer (partial credit) |
+| Idempotency | na |
+| Error Semantics | documented (partial credit) |
+| OpenAPI Examples | verified |
+| Rate Limit Signal | verified |
+| Event Surface Described | — |
+| Agent Skills | derived (partial credit) |
+| Well Known Catalog | — |
+| Consent Identity | — |
+| Agent Card | — |
+| Dry Run Mode | na |
+| Delegated Identity | — |
+| Protected Resource Metadata | — |
+| Dynamic Client Registration | — |
+| Agentic Commerce | — |
+| Pagination Ratio | paginated |
+| Operation Distinctiveness | distinct |
+
+**Regulatory alignment 24.5** — Horizontal (data, software, accessibility, platform)
+
+The rubric is published at [github.com/api-evangelist/kin-score](https://github.com/api-evangelist/kin-score). The per-check breakdown behind these numbers — which checks were earned, partial or missed — along with score history and how this provider compares to its peers, is available at [apis.io/providers/igaming-tools/](https://apis.io/providers/igaming-tools/).
+
+## How this profile is made
+
+API Evangelist profiles a company's public API surface the way a developer would find it: the website, developer portal and documentation, the specifications it publishes, its public repositories, and its pricing, status and changelog pages. From that it derives the properties above — contracts split per API, workflows, schemas, collections, governance rules, plans and rate limits — and scores them against the published [Kin Score rubric](https://github.com/api-evangelist/kin-score).
+
+The artifacts are published on [APIs.io](https://apis.io), not in this repository. This repository is the public record for iGaming Tools: the place to say something is wrong, missing or out of date, and to ask for a re-score or a removal.
+
+## Open an issue
+
+- **Something about this listing** — a wrong description, a missing API, a stale artifact or a question about the rating: [open an issue on this repository](https://github.com/api-evangelist/igaming-tools/issues/new).
+- **A new API, or one that is not in the catalog yet** — [submit it on APIs.io](https://apis.io/add/).
+- **Anything else** — [the APIs.io inbox](https://github.com/api-search/inbox/issues/new) or [info@apievangelist.com](mailto:info@apievangelist.com).
